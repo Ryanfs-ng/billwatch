@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: billwatch
+      POSTGRES_USER: ${POSTGRES_USER:-billwatch}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-billwatch}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+  backend:
+    build: ./backend
+    depends_on:
+      - db
+      - mailpit
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      POSTGRES_USER: ${POSTGRES_USER:-billwatch}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-billwatch}
+    volumes:
+      - ./uploads:/app/uploads
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  db_data:

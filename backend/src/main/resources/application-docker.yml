@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/billwatch
+    username: ${POSTGRES_USER:billwatch}
+    password: ${POSTGRES_PASSWORD:billwatch}
+  mail:
+    host: mailpit
+    port: 1025
+
+uploads:
+  diretorio: /app/uploads

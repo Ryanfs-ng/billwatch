@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: billwatch
+  datasource:
+    url: jdbc:postgresql://localhost:5432/billwatch
+    username: billwatch
+    password: billwatch
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  mail:
+    host: localhost
+    port: 1025
+
+server:
+  port: 8080
+
+boletos:
+  dias-aviso: 7
+
+jwt:
+  secret: change-me-in-production
+  expiracao-minutos: 1440
+
+uploads:
+  diretorio: ./uploads
