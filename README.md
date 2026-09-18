@@ -6,7 +6,7 @@ Sistema de gestão de boletos para uso familiar: cadastro manual de boletos (com
 
 ## Stack
 
-- **Backend**: Java 17, Spring Boot 3 (Web, Data JPA, Security, Mail), PostgreSQL, JWT (jjwt), Maven.
+- **Backend**: Java 21, Spring Boot 3 (Web, Data JPA, Security, Mail), PostgreSQL, JWT (jjwt), Maven.
 - **Frontend**: React + TypeScript + Vite, TanStack Query, React Router, Axios.
 - **Infra**: Docker Compose (db, backend, frontend, mailpit).
 - **Testes**: JUnit + Mockito + Testcontainers (backend), Vitest + Testing Library (frontend).
