@@ -2,12 +2,14 @@ spring:
   application:
     name: billwatch
   datasource:
-    url: jdbc:postgresql://localhost:5432/billwatch
-    username: billwatch
-    password: billwatch
+    url: jdbc:postgresql://localhost:5432/Billwatch?currentSchema=billwatch
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD}
+  flyway:
+    schemas: billwatch
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
   mail:
     host: localhost
