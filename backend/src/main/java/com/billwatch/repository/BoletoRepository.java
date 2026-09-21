@@ -8,5 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface BoletoRepository extends JpaRepository<Boleto, UUID> {
-    List<Boleto> findByResponsavel(Usuario responsavel);
+    List<Boleto> findByResponsavelEmail(String email);
+
 }
