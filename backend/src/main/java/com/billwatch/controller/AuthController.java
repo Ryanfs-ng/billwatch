@@ -1,23 +1,29 @@
 package com.billwatch.controller;
 
+import com.billwatch.dto.AuthResponse;
+import com.billwatch.dto.LoginRequest;
 import com.billwatch.dto.RegistrarRequest;
 import com.billwatch.service.UsuarioService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
-// Endpoints: POST /auth/registrar, POST /auth/login (a implementar).
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final UsuarioService usuarioService;
-//
-//    @PostMapping("/registrar")
-//    public RegistrarRequest registrar (@RequestBody RegistrarRequest dados ) {
-//        return void;
-//    }
+
+    @PostMapping("/registrar")
+    @ResponseStatus(HttpStatus.CREATED)
+    public AuthResponse registrar (@Valid @RequestBody RegistrarRequest dados ) {
+        return usuarioService.registrar(dados);
+    }
+
+    @PostMapping("/login")
+    public AuthResponse login (@Valid @RequestBody LoginRequest dados) {
+        return usuarioService.login(dados);
+    }
 }
