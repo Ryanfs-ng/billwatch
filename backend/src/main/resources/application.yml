@@ -22,7 +22,7 @@ boletos:
   dias-aviso: 7
 
 jwt:
-  secret: change-me-in-production
+  secret: ${JWT_SECRET}
   expiracao-minutos: 1440
 
 uploads:
