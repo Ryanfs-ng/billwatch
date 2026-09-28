@@ -146,22 +146,20 @@
   --shadow-md: var(--bw-shadow-md);
 }
 
-::view-transition-old(root) {
-  animation: 160ms ease-in both vt-sair;
-}
+::view-transition-old(root),
 ::view-transition-new(root) {
-  animation: 220ms ease-out both vt-entrar;
+  animation-duration: 200ms;
 }
-@keyframes vt-sair {
-  to { opacity: 0; }
-}
-@keyframes vt-entrar {
-  from { opacity: 0; }
+::view-transition-group(painel-marca),
+::view-transition-old(painel-marca),
+::view-transition-new(painel-marca) {
+  animation: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none;
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
 

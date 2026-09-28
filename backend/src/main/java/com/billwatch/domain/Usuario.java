@@ -35,6 +35,12 @@ public class Usuario {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column
+    private String resetTokenHash;
+
+    @Column
+    private Instant resetTokenExpira;
+
     @PrePersist
     void aoPersistir() {
         if (createdAt == null) {

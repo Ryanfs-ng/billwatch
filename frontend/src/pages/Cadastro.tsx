@@ -12,6 +12,8 @@ export function Cadastro() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [erroConfirmacao, setErroConfirmacao] = useState("");
 
   const navigate = useNavigate();
   const { signIn } = useAuth();
@@ -33,6 +35,11 @@ export function Cadastro() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (senha !== confirmarSenha) {
+      setErroConfirmacao("As senhas não coincidem.");
+      return;
+    }
+    setErroConfirmacao("");
     mutation.mutate({ nome, email, senha });
   }
 
@@ -91,6 +98,23 @@ export function Cadastro() {
           <p id="senha-ajuda" className="text-xs text-ink-600">
             Mínimo de 8 caracteres.
           </p>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="confirmar-senha" className="text-[13px] font-semibold text-foreground">
+            Confirmar senha
+          </label>
+          <Input
+            id="confirmar-senha"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={8}
+            className="h-12 border-border-strong"
+            value={confirmarSenha}
+            onChange={(e) => setConfirmarSenha(e.target.value)}
+          />
+          {erroConfirmacao && <p className="text-xs text-destructive">{erroConfirmacao}</p>}
         </div>
 
         <Button type="submit" disabled={mutation.isPending} className="h-12 w-full text-base">

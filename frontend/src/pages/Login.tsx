@@ -1,5 +1,6 @@
 import { login } from "@/api/auth";
 import { useAuth } from "@/context/AuthContext";
+import { EsqueciSenhaModal } from "@/components/EsqueciSenhaModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 export function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [recuperandoSenha, setRecuperandoSenha] = useState(false);
 
   const navigate = useNavigate();
   const { signIn } = useAuth();
@@ -71,6 +73,13 @@ export function Login() {
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
           />
+          <button
+            type="button"
+            onClick={() => setRecuperandoSenha(true)}
+            className="self-start text-xs font-medium text-primary hover:underline focus-visible:underline focus-visible:outline-none"
+          >
+            Esqueceu a senha?
+          </button>
         </div>
 
         <Button type="submit" disabled={mutation.isPending} className="h-12 w-full text-base">
@@ -95,6 +104,12 @@ export function Login() {
           Cadastre-se
         </Link>
       </p>
+
+      <EsqueciSenhaModal
+        aberto={recuperandoSenha}
+        emailInicial={email}
+        onFechar={() => setRecuperandoSenha(false)}
+      />
     </>
   );
 }
