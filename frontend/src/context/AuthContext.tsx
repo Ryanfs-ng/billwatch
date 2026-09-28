@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, type ReactNode } from
 
 interface AuthContextValue {
   token: string | null;
+  email: string | null;
   isAuthenticated: boolean;
   signIn: (token: string) => void;
   signOut: () => void;
@@ -10,6 +11,17 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const TOKEN_KEY = "billwatch_token";
+
+// Lê o "sub" (e-mail) do payload do JWT só para exibição; quem valida o token é o backend.
+function emailDoToken(token: string | null): string | null {
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(payload)).sub ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
@@ -25,7 +37,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ token, isAuthenticated: !!token, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{ token, email: emailDoToken(token), isAuthenticated: !!token, signIn, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );
