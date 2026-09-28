@@ -8,7 +8,9 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      # 5434 no host: evita conflito com Postgres nativos já ocupando 5432 e 5433.
+      # Dentro da rede do Docker o serviço continua respondendo em "db:5432" normalmente.
+      - "5434:5432"
 
   mailpit:
     image: axllent/mailpit:latest

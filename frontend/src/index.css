@@ -146,6 +146,44 @@
   --shadow-md: var(--bw-shadow-md);
 }
 
+::view-transition-old(root) {
+  animation: 160ms ease-in both vt-sair;
+}
+::view-transition-new(root) {
+  animation: 220ms ease-out both vt-entrar;
+}
+@keyframes vt-sair {
+  to { opacity: 0; }
+}
+@keyframes vt-entrar {
+  from { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+:root [data-sonner-toaster][data-sonner-theme] {
+  --normal-bg: var(--popover);
+  --normal-text: var(--popover-foreground);
+  --normal-border: var(--border);
+  --success-bg: var(--pago-bg);
+  --success-text: var(--pago);
+  --success-border: color-mix(in srgb, var(--pago) 35%, transparent);
+  --info-bg: var(--brand-50);
+  --info-text: var(--brand-700);
+  --info-border: var(--brand-200);
+  --warning-bg: var(--a-vencer-bg);
+  --warning-text: var(--a-vencer);
+  --warning-border: color-mix(in srgb, var(--a-vencer) 35%, transparent);
+  --error-bg: var(--atrasado-bg);
+  --error-text: var(--atrasado);
+  --error-border: color-mix(in srgb, var(--atrasado) 35%, transparent);
+  --border-radius: var(--radius-md);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

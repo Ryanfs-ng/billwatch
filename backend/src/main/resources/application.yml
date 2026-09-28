@@ -2,7 +2,7 @@ spring:
   application:
     name: billwatch
   datasource:
-    url: jdbc:postgresql://localhost:5432/Billwatch?currentSchema=billwatch
+    url: jdbc:postgresql://localhost:5434/billwatch?currentSchema=billwatch
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD}
   flyway:
