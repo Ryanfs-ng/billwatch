@@ -1,5 +1,6 @@
 import { useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CircleCheck, FileText, Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
 import {
@@ -63,8 +64,6 @@ export function Boletos() {
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Boleto | null>(null);
   const [excluindo, setExcluindo] = useState<Boleto | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
-  const toastTimer = useRef<number>(undefined);
   const inputAnexo = useRef<HTMLInputElement>(null);
   const anexandoId = useRef<string | null>(null);
 
@@ -74,35 +73,29 @@ export function Boletos() {
     queryFn: aba === "meus" ? listarMeusBoletos : listarTodosBoletos,
   });
 
-  function avisar(mensagem: string) {
-    setToast(mensagem);
-    window.clearTimeout(toastTimer.current);
-    toastTimer.current = window.setTimeout(() => setToast(null), 3000);
-  }
-
   const recarregar = () => queryClient.invalidateQueries({ queryKey: ["boletos"] });
 
   const pagar = useMutation({
     mutationFn: marcarComoPago,
-    onSuccess: () => (recarregar(), avisar("Boleto marcado como pago.")),
-    onError: (e) => avisar(mensagemErro(e)),
+    onSuccess: () => (recarregar(), toast.success("Boleto marcado como pago.")),
+    onError: (e) => toast.error(mensagemErro(e)),
   });
 
   const excluir = useMutation({
     mutationFn: excluirBoleto,
-    onSuccess: () => (recarregar(), setExcluindo(null), avisar("Boleto excluído.")),
-    onError: (e) => avisar(mensagemErro(e)),
+    onSuccess: () => (recarregar(), setExcluindo(null), toast.success("Boleto excluído.")),
+    onError: (e) => toast.error(mensagemErro(e)),
   });
 
   const anexar = useMutation({
     mutationFn: ({ id, arquivo }: { id: string; arquivo: File }) => anexarArquivo(id, arquivo),
-    onSuccess: () => (recarregar(), avisar("Anexo enviado.")),
-    onError: (e) => avisar(mensagemErro(e)),
+    onSuccess: () => (recarregar(), toast.success("Anexo enviado.")),
+    onError: (e) => toast.error(mensagemErro(e)),
   });
 
   function abrirAnexo(boleto: Boleto) {
     if (boleto.anexo) {
-      baixarAnexo(boleto).catch((e) => avisar(mensagemErro(e)));
+      baixarAnexo(boleto).catch((e) => toast.error(mensagemErro(e)));
       return;
     }
     anexandoId.current = boleto.id;
@@ -314,7 +307,7 @@ export function Boletos() {
         aberto={formAberto}
         boleto={editando}
         onFechar={() => setFormAberto(false)}
-        onSalvo={(mensagem) => (setFormAberto(false), avisar(mensagem))}
+        onSalvo={() => setFormAberto(false)}
       />
 
       <Modal
@@ -339,13 +332,6 @@ export function Boletos() {
         </div>
       </Modal>
 
-      <div aria-live="polite" className="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex justify-center md:justify-end">
-        {toast && (
-          <p className="pointer-events-auto rounded-md bg-ink-900 px-4 py-3 text-sm font-medium text-surface shadow-md animate-in fade-in slide-in-from-bottom-2">
-            {toast}
-          </p>
-        )}
-      </div>
     </>
   );
 }

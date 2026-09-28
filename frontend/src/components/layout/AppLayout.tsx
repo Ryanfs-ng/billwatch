@@ -92,6 +92,7 @@ export function AppLayout() {
             <NavLink
               key={to}
               to={to}
+              viewTransition
               title={colapsada ? label : undefined}
               onClick={() => setMenuAberto(false)}
               className={({ isActive }) =>

@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from "react";
+import type { FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { anexarArquivo, criarBoleto, editarBoleto } from "@/api/boletos";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { inputClass, mensagemErro } from "@/lib/utils";
 import type { Boleto } from "@/types";
 
@@ -10,14 +11,13 @@ interface BoletoFormProps {
   aberto: boolean;
   boleto: Boleto | null; // null = novo boleto
   onFechar: () => void;
-  onSalvo: (mensagem: string) => void;
+  onSalvo: () => void;
 }
 
 const label = "mb-1.5 block text-[13px] font-semibold";
 
 export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProps) {
   const queryClient = useQueryClient();
-  const [erro, setErro] = useState<string | null>(null);
 
   const salvar = useMutation({
     mutationFn: async (form: FormData) => {
@@ -34,33 +34,29 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
         try {
           await anexarArquivo(salvo.id, arquivo);
         } catch (e) {
-          return `Boleto salvo, mas o anexo não foi enviado: ${mensagemErro(e)}`;
+          return { aviso: true, mensagem: `Boleto salvo, mas o anexo não foi enviado: ${mensagemErro(e)}` };
         }
       }
-      return boleto ? "Boleto atualizado." : "Boleto criado.";
+      return { aviso: false, mensagem: boleto ? "Boleto atualizado." : "Boleto criado." };
     },
-    onSuccess: (mensagem) => {
+    onSuccess: ({ aviso, mensagem }) => {
       queryClient.invalidateQueries({ queryKey: ["boletos"] });
-      onSalvo(mensagem);
+      if (aviso) toast.warning(mensagem);
+      else toast.success(mensagem);
+      onSalvo();
     },
-    onError: (e) => setErro(mensagemErro(e)),
+    onError: (e) => toast.error(mensagemErro(e)),
   });
 
   function enviar(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setErro(null);
     salvar.mutate(new FormData(e.currentTarget));
-  }
-
-  function fechar() {
-    setErro(null);
-    onFechar();
   }
 
   return (
     <Modal
       aberto={aberto}
-      onFechar={fechar}
+      onFechar={onFechar}
       titulo={boleto ? "Editar boleto" : "Novo boleto"}
       descricao={boleto ? undefined : "O boleto será atribuído a você."}
     >
@@ -121,14 +117,9 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
           <p className="mt-1 text-xs text-ink-600">PDF, JPG ou PNG.</p>
         </div>
 
-        {erro && (
-          <p role="alert" className="rounded-md bg-atrasado-bg px-3 py-2 text-sm font-medium text-atrasado">
-            {erro}
-          </p>
-        )}
 
         <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={fechar}>
+          <Button type="button" variant="outline" onClick={onFechar}>
             Cancelar
           </Button>
           <Button type="submit" disabled={salvar.isPending}>

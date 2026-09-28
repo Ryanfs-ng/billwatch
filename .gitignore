@@ -26,3 +26,7 @@ uploads/
 
 # Logs
 *.log
+
+# Notas locais de design/instruções (não sobem pro remoto)
+frontend/CLAUDE.md
+frontend/Design.md
