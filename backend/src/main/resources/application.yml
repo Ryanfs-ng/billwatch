@@ -2,7 +2,7 @@ spring:
   application:
     name: billwatch
   datasource:
-    url: jdbc:postgresql://localhost:5434/billwatch?currentSchema=billwatch
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/billwatch?currentSchema=billwatch
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD}
   flyway:
@@ -31,3 +31,6 @@ jwt:
 
 uploads:
   diretorio: ./uploads
+
+app:
+  link-reset-senha: http://localhost:5173/redefinir-senha

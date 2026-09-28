@@ -1,8 +1,6 @@
 package com.billwatch.controller;
 
-import com.billwatch.dto.AuthResponse;
-import com.billwatch.dto.LoginRequest;
-import com.billwatch.dto.RegistrarRequest;
+import com.billwatch.dto.*;
 import com.billwatch.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,5 +23,17 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponse login (@Valid @RequestBody LoginRequest dados) {
         return usuarioService.login(dados);
+    }
+
+    @PostMapping("/esqueci-senha")
+    @ResponseStatus(HttpStatus.OK)
+    public void esqueciSenha(@Valid @RequestBody EsqueciSenhaRequest dados){
+        usuarioService.esqueciSenha(dados.email());
+    }
+
+    @PostMapping("/redefinir-senha")
+    @ResponseStatus(HttpStatus.OK)
+    public void redefinirSenha(@Valid @RequestBody RedefinirSenhaRequest dados){
+        usuarioService.redefinirSenha(dados.token(), dados.novaSenha());
     }
 }

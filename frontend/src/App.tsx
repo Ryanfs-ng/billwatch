@@ -11,6 +11,7 @@ import { AppLayout } from "./components/layout/AppLayout";
 import { AuthLayout } from "./components/layout/AuthLayout";
 import { Login } from "./pages/Login";
 import { Cadastro } from "./pages/Cadastro";
+import { RedefinirSenha } from "./pages/RedefinirSenha";
 import { Dashboard } from "./pages/Dashboard";
 import { Boletos } from "./pages/Boletos";
 import { Calendario } from "./pages/Calendario";
@@ -22,6 +23,7 @@ const router = createBrowserRouter(
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/redefinir-senha" element={<RedefinirSenha />} />
         </Route>
       </Route>
       <Route element={<RotaProtegida />}>
