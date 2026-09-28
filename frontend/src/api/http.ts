@@ -11,3 +11,15 @@ http.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Token expirado/inválido: limpa e volta ao login (o estado do AuthContext é recarregado).
+http.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error.response?.status === 401 && !error.config?.url?.startsWith("/auth/")) {
+      localStorage.removeItem("billwatch_token");
+      window.location.assign("/login");
+    }
+    return Promise.reject(error);
+  },
+);
