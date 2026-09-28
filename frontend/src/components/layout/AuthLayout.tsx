@@ -1,6 +1,7 @@
 import { CheckCircle2 } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import logo from "@/assets/logo.png";
+import { BotaoTema } from "@/components/BotaoTema";
 
 const DIFERENCIAIS = [
   "Alertas de vencimento em tempo real",
@@ -11,7 +12,7 @@ const DIFERENCIAIS = [
 export function AuthLayout() {
   return (
     <div className="grid min-h-screen md:grid-cols-2">
-      <div className="hidden flex-col justify-center gap-10 bg-brand-900 px-16 py-12 text-white md:flex">
+      <div className="hidden flex-col justify-center gap-10 bg-brand-900 px-16 py-12 text-white [view-transition-name:painel-marca] md:flex">
         <div className="flex items-center gap-2.5">
           <img src={logo} alt="" className="h-8 w-auto" />
           <span className="font-display text-[21px] font-extrabold">BillWatch</span>
@@ -36,7 +37,8 @@ export function AuthLayout() {
         </ul>
       </div>
 
-      <div className="flex flex-col items-center justify-center px-6 py-12">
+      <div className="relative flex flex-col items-center justify-center px-6 py-12">
+        <BotaoTema className="absolute top-4 right-4" />
         <div className="w-full max-w-sm">
           <div className="mb-8 flex items-center gap-2.5 md:hidden">
             <img src={logo} alt="" className="h-8 w-auto" />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import {
   Bell,
@@ -9,11 +9,10 @@ import {
   LayoutGrid,
   LogOut,
   Menu,
-  Moon,
-  Sun,
   X,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { BotaoTema } from "@/components/BotaoTema";
 import { IconButton } from "@/components/IconButton";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -24,36 +23,13 @@ const NAV = [
   { to: "/calendario", label: "Calendário", icon: CalendarDays },
 ];
 
-const TEMA_KEY = "billwatch_tema";
-type Tema = "light" | "dark";
-
-function temaInicial(): Tema {
-  try {
-    const salvo = localStorage.getItem(TEMA_KEY);
-    if (salvo === "light" || salvo === "dark") return salvo;
-  } catch {
-    // storage indisponível: segue a preferência do sistema
-  }
-  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
 const itemNav =
   "flex h-11 items-center gap-3 rounded-md px-3 text-sm font-semibold text-ink-600 transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40";
 
 export function AppLayout() {
   const { email, signOut } = useAuth();
-  const [tema, setTema] = useState(temaInicial);
   const [colapsada, setColapsada] = useState(false);
   const [menuAberto, setMenuAberto] = useState(false);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = tema;
-    try {
-      localStorage.setItem(TEMA_KEY, tema);
-    } catch {
-      // ignora: o tema só não fica salvo
-    }
-  }, [tema]);
 
   const usuario = email?.split("@")[0] ?? "";
 
@@ -144,13 +120,7 @@ export function AppLayout() {
             <IconButton label="Notificações (em breve)" disabled className="size-10 border">
               <Bell />
             </IconButton>
-            <IconButton
-              label={tema === "dark" ? "Usar tema claro" : "Usar tema escuro"}
-              onClick={() => setTema(tema === "dark" ? "light" : "dark")}
-              className="size-10 border"
-            >
-              {tema === "dark" ? <Sun /> : <Moon />}
-            </IconButton>
+            <BotaoTema />
           </div>
         </header>
 
