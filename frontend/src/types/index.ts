@@ -7,12 +7,11 @@ export interface Usuario {
   createdAt: string;
 }
 
-// Espelha BoletoResponse do backend.
 export interface Boleto {
   id: string;
   descricao: string;
   valor: number;
-  dataVencimento: string; // yyyy-MM-dd
+  dataVencimento: string;
   dataAnexado: string | null;
   dataPagamento: string | null;
   anexo: string | null;
@@ -21,7 +20,6 @@ export interface Boleto {
   status: StatusBoleto;
 }
 
-// Espelha BoletoRequest do backend.
 export interface BoletoPayload {
   descricao: string;
   valor: number;

@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-// Regras de negocio (calculo de status, notificacao) a implementar na proxima etapa.
 @Service
 @RequiredArgsConstructor
 public class BoletoService {
@@ -100,7 +99,6 @@ public class BoletoService {
         return entidadeParaResponse(boletoRepository.save(boleto));
     }
 
-    // ponytail: agrega em memória sobre os boletos do usuário; vira query agregada se o volume crescer.
     public DashboardResponse dashboard(String email) {
         LocalDate hoje = LocalDate.now();
         YearMonth mesAtual = YearMonth.from(hoje);

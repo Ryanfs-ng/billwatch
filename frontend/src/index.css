@@ -2,10 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Tema escuro via classe .dark no <html>, aplicada pelo next-themes (ver main.tsx) — Design.md §8. */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Tokens do BillWatch — Design.md §2 e §4. */
 :root {
   --brand-50: #f0f6fe;
   --brand-100: #dceafd;
@@ -32,14 +30,12 @@
   --atrasado-bg: #fbe7e5;
   --pendente: #5b6472;
   --pendente-bg: #eef1f4;
-  /* Verde do check animado (public/animacoes/sucesso.lottie); o ícone de pago fixo usa o mesmo. */
   --check-sucesso: #23b26d;
 
   --bw-shadow-xs: rgba(0, 0, 0, 0.06) 0 0 6px 0;
   --bw-shadow-sm: rgba(0, 0, 0, 0.08) 0 0 10px 0;
   --bw-shadow-md: rgba(0, 0, 0, 0.1) 0 0 10px 0;
 
-  /* Variáveis consumidas pelos componentes shadcn. */
   --background: var(--surface-sunken);
   --foreground: var(--ink-900);
   --card: var(--surface);
@@ -158,8 +154,6 @@
 ::view-transition-new(painel-marca) {
   animation: none;
 }
-/* Durante a troca de tema (ThemeToggler, animate-ui) a "foto" nova é revelada por clip-path em vez
-   do fade padrão; a classe só existe enquanto a troca acontece, então o fade das telas continua. */
 html.trocando-tema::view-transition-old(root),
 html.trocando-tema::view-transition-new(root) {
   animation: none;
@@ -173,12 +167,6 @@ html.trocando-tema::view-transition-new(root) {
   }
 }
 
-/* Modal (<dialog>, ver Modal.tsx).
-   O dialog é um container transparente do tamanho da tela e NÃO pode ter transform: os toasts são
-   movidos para dentro dele enquanto está aberto, e um transform faria o position:fixed deles ficar
-   relativo ao modal em vez da tela. Por isso o dialog só faz fade e o "pop" fica no .modal-painel.
-   Estado fechado = base; [open] = destino; @starting-style = de onde a entrada começa.
-   overlay/display com allow-discrete mantêm o dialog visível até a saída terminar. */
 dialog.modal {
   position: fixed;
   inset: 0;
@@ -223,7 +211,7 @@ dialog.modal[open] .modal-painel {
   scale: 1;
   translate: 0 0;
   transition:
-    scale 260ms cubic-bezier(0.34, 1.4, 0.64, 1), /* passa um pouco de 1 e volta: o "pop" */
+    scale 260ms cubic-bezier(0.34, 1.4, 0.64, 1),
     translate 260ms cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 @starting-style {

@@ -11,7 +11,6 @@ import { toast } from "sonner";
 
 export function Login() {
   const location = useLocation();
-  // Vindo do cadastro, o e-mail chega preenchido.
   const [email, setEmail] = useState<string>(location.state?.email ?? "");
   const [senha, setSenha] = useState("");
   const [recuperandoSenha, setRecuperandoSenha] = useState(false);

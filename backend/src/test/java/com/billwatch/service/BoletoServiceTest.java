@@ -29,11 +29,11 @@ class BoletoServiceTest {
 
         LocalDate hoje = LocalDate.now();
         when(repo.findByResponsavelEmail("ryan@email.com")).thenReturn(List.of(
-                boleto("100.00", hoje.minusDays(3), null),               // atrasado
-                boleto("50.00", hoje.plusDays(2), null),                 // a vencer
-                boleto("20.00", hoje.plusDays(30), null),                // pendente
-                boleto("300.00", hoje.minusDays(1), hoje),               // pago neste mês
-                boleto("999.00", hoje.minusMonths(2), hoje.minusMonths(2)) // pago em outro mês
+                boleto("100.00", hoje.minusDays(3), null),
+                boleto("50.00", hoje.plusDays(2), null),
+                boleto("20.00", hoje.plusDays(30), null),
+                boleto("300.00", hoje.minusDays(1), hoje),
+                boleto("999.00", hoje.minusMonths(2), hoje.minusMonths(2))
         ));
 
         DashboardResponse r = service.dashboard("ryan@email.com");

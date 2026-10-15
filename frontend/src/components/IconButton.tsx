@@ -1,7 +1,6 @@
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
-// Botão só-ícone: o label vira aria-label e tooltip.
 export function IconButton({ label, className, ...props }: ComponentProps<"button"> & { label: string }) {
   return (
     <button

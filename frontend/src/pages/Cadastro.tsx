@@ -20,7 +20,6 @@ export function Cadastro() {
     mutationFn: registrar,
     onSuccess: () => {
       toast.success("Conta criada! Entre com seu e-mail e senha.");
-      // O e-mail vai no state da navegação para o Login já abrir preenchido.
       navigate("/login", { replace: true, viewTransition: true, state: { email } });
     },
     onError: (erro) => {

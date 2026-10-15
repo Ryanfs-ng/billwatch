@@ -42,7 +42,6 @@ export async function anexarArquivo(id: string, arquivo: File): Promise<Boleto> 
   return data;
 }
 
-// O download precisa do header Authorization, então não dá para usar um <a href> direto.
 export async function baixarAnexo(boleto: Boleto): Promise<void> {
   const { data } = await http.get<Blob>(`/boletos/${boleto.id}/anexo`, { responseType: "blob" });
   const url = URL.createObjectURL(data);

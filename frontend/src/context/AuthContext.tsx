@@ -13,11 +13,9 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const TOKEN_KEY = "billwatch_token";
 
-// Lê e-mail ("sub") e nome do payload do JWT só para exibição; quem valida o token é o backend.
 function lerToken(token: string | null): { email: string | null; nome: string | null } {
   try {
     const base64 = token!.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    // atob devolve bytes; o TextDecoder converte de UTF-8 para não quebrar acentos ("Conceição").
     const json = new TextDecoder().decode(Uint8Array.from(atob(base64), (c) => c.charCodeAt(0)));
     const payload = JSON.parse(json);
     return { email: payload.sub ?? null, nome: payload.nome ?? null };

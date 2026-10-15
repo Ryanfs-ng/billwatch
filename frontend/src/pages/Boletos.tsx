@@ -56,7 +56,6 @@ export function Boletos() {
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Boleto | null>(null);
   const [excluindo, setExcluindo] = useState<Boleto | null>(null);
-  // id do boleto cujo botão "marcar como pago" está tocando o check animado
   const [animandoPagamento, setAnimandoPagamento] = useState<string | null>(null);
   const inputAnexo = useRef<HTMLInputElement>(null);
   const anexandoId = useRef<string | null>(null);
@@ -124,13 +123,11 @@ export function Boletos() {
       <IconButton label="Editar" onClick={() => abrirForm(boleto)} className={className}>
         <Pencil />
       </IconButton>
-      {/* relative: o check animado fica por cima do botão, fora dele, para não herdar a opacidade de desabilitado */}
       <div className="relative">
         <IconButton
           label={boleto.status === "PAGO" ? "Já está pago" : "Marcar como pago"}
           disabled={boleto.status === "PAGO" || pagar.isPending}
           onClick={() => pagar.mutate(boleto)}
-          // Pago: o check verde aparece com cor cheia, sem o apagado de botão desabilitado.
           className={cn(className, "hover:text-pago", boleto.status === "PAGO" && "disabled:opacity-100")}
         >
           {animandoPagamento === boleto.id ? (
@@ -218,7 +215,11 @@ export function Boletos() {
         ))}
       </ul>
 
-      <section className="mt-4" aria-busy={consulta.isPending}>
+      <section
+        key={aba}
+        aria-busy={consulta.isPending}
+        className="mt-4 duration-300 ease-out animate-in fade-in slide-in-from-bottom-2 motion-reduce:animate-none"
+      >
         {consulta.isPending ? (
           <Esqueleto />
         ) : consulta.isError ? (
@@ -354,8 +355,6 @@ function Vazio({ titulo, texto, children }: { titulo: string; texto?: string; ch
   );
 }
 
-// Igual ao último quadro do check animado (círculo verde de ~19px com check branco), para a troca
-// da animação por este ícone não dar "pulo". O size-3! vence o tamanho fixo de svg do IconButton.
 function CheckPago() {
   return (
     <span aria-hidden className="grid size-[19px] place-items-center rounded-full bg-check-sucesso text-white">

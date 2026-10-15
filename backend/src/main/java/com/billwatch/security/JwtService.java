@@ -22,7 +22,6 @@ public class JwtService {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 
-    // O "nome" vai como claim só para o front exibir; a identidade continua sendo o e-mail (subject).
     public String gerarToken(String email, String nome) {
         long agora = System.currentTimeMillis();
         return Jwts.builder()

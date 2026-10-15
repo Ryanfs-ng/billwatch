@@ -11,7 +11,6 @@ import type { Boleto } from "@/types";
 
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-// Cor de cada dia: atrasado ganha de a vencer/pendente, que ganha de pago (Design.md, CalendarDay).
 const COR_DIA = {
   atrasado: { chip: "bg-atrasado-bg text-atrasado", dot: "bg-atrasado", label: "Atrasado" },
   aVencer: { chip: "bg-a-vencer-bg text-a-vencer", dot: "bg-a-vencer", label: "A vencer" },
@@ -24,10 +23,9 @@ export function corDoDia(boletos: Boleto[]): keyof typeof COR_DIA {
   return "pago";
 }
 
-// Células da grade do mês: null é um espaço vazio antes do dia 1 ou depois do último dia.
 export function diasDoMes(ano: number, mes: number): (number | null)[] {
-  const primeiroDiaDaSemana = new Date(ano, mes, 1).getDay(); // 0 = domingo
-  const totalDeDias = new Date(ano, mes + 1, 0).getDate(); // dia 0 do mês seguinte = último dia deste
+  const primeiroDiaDaSemana = new Date(ano, mes, 1).getDay();
+  const totalDeDias = new Date(ano, mes + 1, 0).getDate();
   const celulas: (number | null)[] = [];
   for (let i = 0; i < primeiroDiaDaSemana; i++) celulas.push(null);
   for (let dia = 1; dia <= totalDeDias; dia++) celulas.push(dia);
@@ -35,7 +33,6 @@ export function diasDoMes(ano: number, mes: number): (number | null)[] {
   return celulas;
 }
 
-// (2026, 8, 5) -> "2026-09-05", mesmo formato do dataVencimento que vem da API.
 const dataISO = (ano: number, mes: number, dia: number) =>
   `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
 
@@ -44,13 +41,18 @@ const plural = (n: number) => `${n} ${n === 1 ? "vencimento" : "vencimentos"}`;
 export function Calendario() {
   const hoje = hojeISO();
   const [ano, setAno] = useState(() => new Date().getFullYear());
-  const [mes, setMes] = useState(() => new Date().getMonth()); // 0 = janeiro
+  const [mes, setMes] = useState(() => new Date().getMonth());
   const [diaAberto, setDiaAberto] = useState<string | null>(null);
+  const [direcao, setDirecao] = useState(0);
 
   const aba = useAba();
+  const [abaAnterior, setAbaAnterior] = useState(aba);
+  if (aba !== abaAnterior) {
+    setAbaAnterior(aba);
+    setDirecao(0);
+  }
   const boletos = useQuery(consultaDaAba(aba));
 
-  // Agrupa os boletos pela data de vencimento: { "2026-09-18": [boleto, boleto], ... }
   const porDia = new Map<string, Boleto[]>();
   for (const boleto of boletos.data ?? []) {
     const lista = porDia.get(boleto.dataVencimento) ?? [];
@@ -58,15 +60,19 @@ export function Calendario() {
     porDia.set(boleto.dataVencimento, lista);
   }
 
+  function irPara(novoAno: number, novoMes: number) {
+    setDirecao(Math.sign(novoAno * 12 + novoMes - (ano * 12 + mes)));
+    setAno(novoAno);
+    setMes(novoMes);
+  }
+
   function mudarMes(quantidade: number) {
-    const novo = new Date(ano, mes + quantidade, 1); // o Date já vira o ano (dezembro + 1 = janeiro)
-    setAno(novo.getFullYear());
-    setMes(novo.getMonth());
+    const novo = new Date(ano, mes + quantidade, 1);
+    irPara(novo.getFullYear(), novo.getMonth());
   }
 
   function irParaHoje() {
-    setAno(new Date().getFullYear());
-    setMes(new Date().getMonth());
+    irPara(new Date().getFullYear(), new Date().getMonth());
   }
 
   const nomeDoMes = new Date(ano, mes, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
@@ -111,13 +117,23 @@ export function Calendario() {
         </div>
       )}
 
-      <div className="mt-6 grid grid-cols-7 gap-1.5 md:gap-3" aria-busy={boletos.isPending}>
+      <div className="mt-6 grid grid-cols-7 gap-1.5 md:gap-3">
         {DIAS_SEMANA.map((nome) => (
           <p key={nome} aria-hidden className="pb-1 text-center text-xs font-semibold text-ink-600 md:text-[13px]">
             {nome}
           </p>
         ))}
+      </div>
 
+      <div
+        key={`${ano}-${mes}-${aba}`}
+        aria-busy={boletos.isPending}
+        className={cn(
+          "mt-1.5 grid grid-cols-7 gap-1.5 duration-300 ease-out animate-in fade-in motion-reduce:animate-none md:mt-3 md:gap-3",
+          direcao > 0 && "slide-in-from-right-8",
+          direcao < 0 && "slide-in-from-left-8",
+        )}
+      >
         {diasDoMes(ano, mes).map((dia, i) => {
           if (dia === null) {
             return <div key={`vazio-${i}`} className="h-14 rounded-md bg-surface-hover/50 md:h-28" />;
@@ -146,7 +162,6 @@ export function Calendario() {
               <span className={cn("text-sm font-bold md:text-lg", ehHoje && "text-brand-500")}>{dia}</span>
               {cor && (
                 <>
-                  {/* Decide pela largura da célula (container query): estreita = bolinha + número; larga = chip "2 vencimentos". */}
                   <span className="mt-auto flex items-center gap-1 text-xs font-bold @[7rem]:hidden">
                     <span aria-hidden className={cn("size-2 rounded-full", cor.dot)} />
                     {doDia.length}
@@ -173,7 +188,6 @@ export function Calendario() {
             <li key={b.id} className="flex items-center justify-between gap-4 border-b py-3 last:border-0">
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{b.descricao}</p>
-                {/* Na aba "Todos" o dia mistura boletos de várias pessoas. */}
                 <p className="truncate text-xs text-ink-600">{b.responsavelNome}</p>
                 <StatusDot status={b.status} className="mt-1 text-xs" />
               </div>

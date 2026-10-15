@@ -12,7 +12,6 @@ import type { Boleto } from "@/types";
 
 const LIMITE_PROXIMOS = 5;
 
-// Boletos em aberto mais urgentes primeiro (atrasados aparecem antes por terem data menor).
 export function proximosVencimentos(boletos: Boleto[], limite = LIMITE_PROXIMOS): Boleto[] {
   return boletos
     .filter((b) => b.status !== "PAGO")
@@ -24,11 +23,10 @@ export function Dashboard() {
   const { nome } = useAuth();
   const [formAberto, setFormAberto] = useState(false);
 
-  // Chaves começam com "boletos": qualquer mutação que invalida ["boletos"] atualiza o dashboard também.
   const agregados = useQuery({ queryKey: ["boletos", "dashboard"], queryFn: buscarDashboard });
   const boletos = useQuery({ queryKey: ["boletos", "meus"], queryFn: listarMeusBoletos });
 
-  const primeiroNome = nome?.trim().split(/\s+/)[0]; // "Maria Helena Souza" -> "Maria"
+  const primeiroNome = nome?.trim().split(/\s+/)[0];
   const proximos = proximosVencimentos(boletos.data ?? []);
   const a = agregados.data;
 
@@ -130,7 +128,6 @@ export function Dashboard() {
   );
 }
 
-// valor undefined = ainda carregando. corRodape = classe de cor do texto de baixo.
 function StatCard({ icone: Icone, label, valor, rodape, corRodape }: {
   icone: LucideIcon;
   label: string;
