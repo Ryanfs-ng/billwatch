@@ -10,7 +10,7 @@ import type { Boleto } from "@/types";
 
 interface BoletoFormProps {
   aberto: boolean;
-  boleto: Boleto | null; // null = novo boleto
+  boleto: Boleto | null;
   onFechar: () => void;
   onSalvo: () => void;
 }
@@ -19,7 +19,6 @@ const label = "mb-1.5 block text-[13px] font-semibold";
 
 export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProps) {
   const queryClient = useQueryClient();
-  // Mensagem de sucesso: enquanto existir, o modal mostra o check animado no lugar do formulário.
   const [sucesso, setSucesso] = useState<string | null>(null);
 
   function concluir() {
@@ -36,7 +35,6 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
       };
       const salvo = boleto ? await editarBoleto(boleto.id, payload) : await criarBoleto(payload);
 
-      // O anexo é outro request: se falhar, o boleto já existe e não pode ser recriado ao reenviar.
       const arquivo = form.get("arquivo");
       if (arquivo instanceof File && arquivo.size > 0) {
         try {

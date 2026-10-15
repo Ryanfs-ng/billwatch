@@ -6,10 +6,8 @@ const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL
 
 export const formatarMoeda = (valor: number) => moeda.format(valor);
 
-// "2026-09-18" -> "18/09/2026" (sem passar por Date, evita deslocamento de fuso).
 export const formatarData = (iso: string) => iso.split("-").reverse().join("/");
 
-// Data local no formato yyyy-MM-dd, deslocada em `dias`.
 export function hojeISO(dias = 0): string {
   const d = new Date();
   d.setDate(d.getDate() + dias);

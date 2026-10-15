@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { StatusBoleto } from "@/types";
 
-// Ordem usada na legenda e no filtro.
 export const STATUS: Record<StatusBoleto, { label: string; dot: string }> = {
   PAGO: { label: "Pago", dot: "bg-pago" },
   A_VENCER: { label: "A vencer", dot: "bg-a-vencer" },
@@ -9,7 +8,6 @@ export const STATUS: Record<StatusBoleto, { label: string; dot: string }> = {
   PENDENTE: { label: "Pendente", dot: "bg-pendente" },
 };
 
-// Bolinha + texto: o status nunca depende só da cor.
 export function StatusDot({ status, className }: { status: StatusBoleto; className?: string }) {
   const { label, dot } = STATUS[status];
   return (

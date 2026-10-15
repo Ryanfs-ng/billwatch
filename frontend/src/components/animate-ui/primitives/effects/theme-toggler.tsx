@@ -91,7 +91,6 @@ function ThemeToggler({
         return;
       }
 
-      // BillWatch: sem animação para quem pediu menos movimento no sistema.
       if (
         !document.startViewTransition ||
         window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -103,8 +102,6 @@ function ThemeToggler({
         return;
       }
 
-      // BillWatch: a classe desliga o fade padrão das transições de página só durante a troca de
-      // tema (ver index.css); o original usava um <style> global que matava o fade das telas.
       document.documentElement.classList.add('trocando-tema');
       const transicao = document.startViewTransition(() => {
         flushSync(() => {
@@ -115,16 +112,12 @@ function ThemeToggler({
           );
         });
       });
-      // Só remove a classe quando a transição do navegador termina de fato (inclusive se for
-      // cancelada). Remover antes reativa o fade padrão sobre a "foto" do tema antigo, que ainda
-      // está na tela, e o tema anterior pisca no final.
       transicao.finished.finally(() => {
         document.documentElement.classList.remove('trocando-tema');
       });
       try {
         await transicao.ready;
       } catch {
-        // Transição cancelada (ex.: navegação no meio): aplica o tema sem animar.
         setTheme(theme);
         return;
       }

@@ -64,7 +64,7 @@ describe("proximosVencimentos", () => {
 
 describe("calendário", () => {
   it("monta a grade com espaços vazios e semanas completas", () => {
-    const setembro2026 = diasDoMes(2026, 8); // 1/9/2026 é terça
+    const setembro2026 = diasDoMes(2026, 8);
     expect(setembro2026.slice(0, 3)).toEqual([null, null, 1]);
     expect(setembro2026.filter((d) => d !== null)).toHaveLength(30);
     expect(setembro2026.length % 7).toBe(0);

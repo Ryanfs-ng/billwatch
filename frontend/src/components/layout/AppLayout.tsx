@@ -31,7 +31,6 @@ export function AppLayout() {
   const [colapsada, setColapsada] = useState(false);
   const [menuAberto, setMenuAberto] = useState(false);
 
-  // "Ryan Silva" -> "RS". Tokens antigos não têm nome: cai para as 2 primeiras letras do e-mail.
   const partes = nome?.trim().split(/\s+/) ?? [];
   const iniciais = partes.length
     ? (partes[0][0] + (partes.length > 1 ? partes[partes.length - 1][0] : "")).toUpperCase()
@@ -120,7 +119,6 @@ export function AppLayout() {
             <Menu />
           </IconButton>
           <div className="ml-auto flex gap-2">
-            {/* ponytail: notificações ainda não existem no backend; botão fica desabilitado até lá. */}
             <IconButton label="Notificações (em breve)" disabled className="size-10 border">
               <Bell />
             </IconButton>

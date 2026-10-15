@@ -12,7 +12,6 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
-// Token expirado/inválido: limpa e volta ao login (o estado do AuthContext é recarregado).
 http.interceptors.response.use(
   (res) => res,
   (error) => {
