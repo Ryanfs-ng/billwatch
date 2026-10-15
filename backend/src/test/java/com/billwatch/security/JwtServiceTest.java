@@ -24,14 +24,14 @@ public class JwtServiceTest {
 
     @Test
     void geraEExtraiEmail() {
-        String token = service.gerarToken("a@b.com");
+        String token = service.gerarToken("a@b.com", "Ana");
         assertEquals("a@b.com", service.extrairEmail(token));
     }
 
     @Test
     void tokenExpiradoLancaExcecao() {
         ReflectionTestUtils.setField(service, "expiracaoMinutos", -1L);
-        String token = service.gerarToken("a@b.com");
+        String token = service.gerarToken("a@b.com", "Ana");
         assertThrows(JwtException.class, () -> service.extrairEmail(token));
     }
 }

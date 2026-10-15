@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { StatusDot } from "../components/StatusDot";
 import { filtrarBoletos } from "../pages/Boletos";
+import { proximosVencimentos } from "../pages/Dashboard";
 import type { Boleto } from "../types";
 
 const boleto = (descricao: string, dataVencimento: string, status: Boleto["status"]): Boleto => ({
@@ -50,5 +51,12 @@ describe("StatusDot", () => {
   it("exibe o label do status", () => {
     render(<StatusDot status="ATRASADO" />);
     expect(screen.getByText("Atrasado")).toBeInTheDocument();
+  });
+});
+
+describe("proximosVencimentos", () => {
+  it("ignora pagos, ordena por data e limita", () => {
+    const comPago = [...lista, boleto("Plano", "2026-09-01", "PAGO")];
+    expect(proximosVencimentos(comPago, 2).map((b) => b.descricao)).toEqual(["Conta de luz", "Internet"]);
   });
 });

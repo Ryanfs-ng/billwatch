@@ -27,11 +27,15 @@ const itemNav =
   "flex h-11 items-center gap-3 rounded-md px-3 text-sm font-semibold text-ink-600 transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40";
 
 export function AppLayout() {
-  const { email, signOut } = useAuth();
+  const { email, nome, signOut } = useAuth();
   const [colapsada, setColapsada] = useState(false);
   const [menuAberto, setMenuAberto] = useState(false);
 
-  const usuario = email?.split("@")[0] ?? "";
+  // "Ryan Silva" -> "RS". Tokens antigos não têm nome: cai para as 2 primeiras letras do e-mail.
+  const partes = nome?.trim().split(/\s+/) ?? [];
+  const iniciais = partes.length
+    ? (partes[0][0] + (partes.length > 1 ? partes[partes.length - 1][0] : "")).toUpperCase()
+    : (email ?? "").slice(0, 2).toUpperCase();
 
   return (
     <div className="flex h-svh overflow-hidden bg-background">
@@ -91,10 +95,10 @@ export function AppLayout() {
               aria-hidden
               className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-100 text-sm font-bold text-brand-700"
             >
-              {usuario.slice(0, 2).toUpperCase()}
+              {iniciais}
             </span>
             <div className={cn("min-w-0", colapsada && "md:hidden")}>
-              <p className="truncate text-sm font-semibold capitalize">{usuario}</p>
+              {nome && <p className="truncate text-sm font-semibold">{nome}</p>}
               <p className="truncate text-xs text-ink-600">{email}</p>
             </div>
           </div>

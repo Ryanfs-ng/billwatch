@@ -22,10 +22,12 @@ public class JwtService {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 
-    public String gerarToken(String email) {
+    // O "nome" vai como claim só para o front exibir; a identidade continua sendo o e-mail (subject).
+    public String gerarToken(String email, String nome) {
         long agora = System.currentTimeMillis();
         return Jwts.builder()
                 .subject(email)
+                .claim("nome", nome)
                 .issuedAt(new Date(agora))
                 .expiration(new Date(agora + expiracaoMinutos * 60_000))
                 .signWith(secretKey())
