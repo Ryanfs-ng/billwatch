@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { StatusDot } from "../components/StatusDot";
 import { filtrarBoletos } from "../pages/Boletos";
 import { proximosVencimentos } from "../pages/Dashboard";
+import { corDoDia, diasDoMes } from "../pages/Calendario";
 import type { Boleto } from "../types";
 
 const boleto = (descricao: string, dataVencimento: string, status: Boleto["status"]): Boleto => ({
@@ -58,5 +59,20 @@ describe("proximosVencimentos", () => {
   it("ignora pagos, ordena por data e limita", () => {
     const comPago = [...lista, boleto("Plano", "2026-09-01", "PAGO")];
     expect(proximosVencimentos(comPago, 2).map((b) => b.descricao)).toEqual(["Conta de luz", "Internet"]);
+  });
+});
+
+describe("calendário", () => {
+  it("monta a grade com espaços vazios e semanas completas", () => {
+    const setembro2026 = diasDoMes(2026, 8); // 1/9/2026 é terça
+    expect(setembro2026.slice(0, 3)).toEqual([null, null, 1]);
+    expect(setembro2026.filter((d) => d !== null)).toHaveLength(30);
+    expect(setembro2026.length % 7).toBe(0);
+  });
+
+  it("cor do dia: atrasado > a vencer/pendente > pago", () => {
+    expect(corDoDia([boleto("a", "2026-09-01", "PAGO"), boleto("b", "2026-09-01", "ATRASADO")])).toBe("atrasado");
+    expect(corDoDia([boleto("a", "2026-09-01", "PAGO"), boleto("b", "2026-09-01", "PENDENTE")])).toBe("aVencer");
+    expect(corDoDia([boleto("a", "2026-09-01", "PAGO")])).toBe("pago");
   });
 });

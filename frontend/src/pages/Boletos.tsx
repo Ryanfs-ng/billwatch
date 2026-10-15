@@ -1,16 +1,9 @@
 import { useRef, useState, type ChangeEvent, type ReactNode } from "react";
-import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CircleCheck, FileText, Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
-import {
-  anexarArquivo,
-  baixarAnexo,
-  excluirBoleto,
-  listarMeusBoletos,
-  listarTodosBoletos,
-  marcarComoPago,
-} from "@/api/boletos";
+import { anexarArquivo, baixarAnexo, excluirBoleto, marcarComoPago } from "@/api/boletos";
+import { AbasResponsavel, consultaDaAba, useAba } from "@/components/AbasResponsavel";
 import { BoletoForm } from "@/components/BoletoForm";
 import { IconButton } from "@/components/IconButton";
 import { Modal } from "@/components/Modal";
@@ -19,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { cn, formatarData, formatarMoeda, hojeISO, inputClass, mensagemErro } from "@/lib/utils";
 import type { Boleto, StatusBoleto } from "@/types";
 
-type Aba = "meus" | "todos";
 export type Periodo = "qualquer" | "7" | "30" | "mes";
 
 export interface Filtros {
@@ -58,8 +50,7 @@ function somarDias(iso: string, dias: number): string {
 }
 
 export function Boletos() {
-  const [params, setParams] = useSearchParams();
-  const aba: Aba = params.get("aba") === "todos" ? "todos" : "meus";
+  const aba = useAba();
   const [filtros, setFiltros] = useState(FILTROS_VAZIOS);
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Boleto | null>(null);
@@ -68,10 +59,7 @@ export function Boletos() {
   const anexandoId = useRef<string | null>(null);
 
   const queryClient = useQueryClient();
-  const consulta = useQuery({
-    queryKey: ["boletos", aba],
-    queryFn: aba === "meus" ? listarMeusBoletos : listarTodosBoletos,
-  });
+  const consulta = useQuery(consultaDaAba(aba));
 
   const recarregar = () => queryClient.invalidateQueries({ queryKey: ["boletos"] });
 
@@ -153,23 +141,7 @@ export function Boletos() {
         </Button>
       </div>
 
-      <div role="tablist" aria-label="Filtrar por responsável" className="mt-6 flex gap-2 border-b">
-        {(["meus", "todos"] as const).map((valor) => (
-          <button
-            key={valor}
-            role="tab"
-            type="button"
-            aria-selected={aba === valor}
-            onClick={() => setParams(valor === "todos" ? { aba: "todos" } : {}, { replace: true })}
-            className={cn(
-              "-mb-px h-11 cursor-pointer border-b-2 border-transparent px-2 text-[15px] font-semibold text-ink-600 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40",
-              aba === valor && "border-brand-500 text-brand-700 hover:text-brand-700",
-            )}
-          >
-            {valor === "meus" ? "Meus boletos" : "Todos os boletos"}
-          </button>
-        ))}
-      </div>
+      <AbasResponsavel />
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:flex lg:items-end">
         <div className="lg:w-60">
