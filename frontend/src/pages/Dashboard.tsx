@@ -84,7 +84,7 @@ export function Dashboard() {
           <h2 id="proximos-titulo" className="font-display text-lg font-extrabold tracking-tight">
             Próximos vencimentos
           </h2>
-          <Link to="/calendario" className={cn(buttonVariants({ variant: "outline" }))}>
+          <Link to="/calendario" viewTransition className={cn(buttonVariants({ variant: "outline" }))}>
             Ver calendário
           </Link>
         </div>
