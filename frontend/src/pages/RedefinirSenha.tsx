@@ -41,11 +41,11 @@ export function RedefinirSenha() {
     return (
       <>
         <Login />
-        <Modal aberto titulo="Link inválido" onFechar={() => navigate("/login", { replace: true })}>
+        <Modal aberto titulo="Link inválido" onFechar={() => navigate("/login", { replace: true, viewTransition: true })}>
           <p className="text-sm text-ink-600">
             Este link de redefinição de senha está incompleto. Solicite um novo em "Esqueceu a senha?".
           </p>
-          <Button className="mt-5 h-10 w-full" onClick={() => navigate("/login", { replace: true })}>
+          <Button className="mt-5 h-10 w-full" onClick={() => navigate("/login", { replace: true, viewTransition: true })}>
             Voltar ao login
           </Button>
         </Modal>
@@ -60,7 +60,7 @@ export function RedefinirSenha() {
         aberto
         titulo="Redefinir senha"
         descricao="Escolha uma nova senha para sua conta."
-        onFechar={() => navigate("/login", { replace: true })}
+        onFechar={() => navigate("/login", { replace: true, viewTransition: true })}
       >
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">

@@ -1,7 +1,8 @@
-import type { FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { anexarArquivo, criarBoleto, editarBoleto } from "@/api/boletos";
 import { Modal } from "@/components/Modal";
+import { preferePoucoMovimento, SucessoAnimado } from "@/components/SucessoAnimado";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { inputClass, mensagemErro } from "@/lib/utils";
@@ -18,6 +19,13 @@ const label = "mb-1.5 block text-[13px] font-semibold";
 
 export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProps) {
   const queryClient = useQueryClient();
+  // Mensagem de sucesso: enquanto existir, o modal mostra o check animado no lugar do formulário.
+  const [sucesso, setSucesso] = useState<string | null>(null);
+
+  function concluir() {
+    setSucesso(null);
+    onSalvo();
+  }
 
   const salvar = useMutation({
     mutationFn: async (form: FormData) => {
@@ -41,9 +49,15 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
     },
     onSuccess: ({ aviso, mensagem }) => {
       queryClient.invalidateQueries({ queryKey: ["boletos"] });
-      if (aviso) toast.warning(mensagem);
-      else toast.success(mensagem);
-      onSalvo();
+      if (aviso) {
+        toast.warning(mensagem);
+        onSalvo();
+      } else if (preferePoucoMovimento()) {
+        toast.success(mensagem);
+        onSalvo();
+      } else {
+        setSucesso(mensagem);
+      }
     },
     onError: (e) => toast.error(mensagemErro(e)),
   });
@@ -53,80 +67,89 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
     salvar.mutate(new FormData(e.currentTarget));
   }
 
+  function fechar() {
+    setSucesso(null);
+    onFechar();
+  }
+
   return (
     <Modal
       aberto={aberto}
-      onFechar={onFechar}
+      onFechar={fechar}
       titulo={boleto ? "Editar boleto" : "Novo boleto"}
       descricao={boleto ? undefined : "O boleto será atribuído a você."}
     >
-      <form onSubmit={enviar} className="space-y-4">
-        <div>
-          <label htmlFor="descricao" className={label}>Descrição</label>
-          <input
-            id="descricao"
-            name="descricao"
-            required
-            autoFocus
-            defaultValue={boleto?.descricao}
-            placeholder="Ex.: Conta de luz"
-            className={inputClass}
-          />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
+      {sucesso ? (
+        <SucessoAnimado mensagem={sucesso} onConcluir={concluir} />
+      ) : (
+        <form onSubmit={enviar} className="space-y-4">
           <div>
-            <label htmlFor="valor" className={label}>Valor (R$)</label>
+            <label htmlFor="descricao" className={label}>Descrição</label>
             <input
-              id="valor"
-              name="valor"
-              type="number"
-              inputMode="decimal"
-              step="0.01"
-              min="0.01"
+              id="descricao"
+              name="descricao"
               required
-              defaultValue={boleto?.valor}
-              placeholder="0,00"
-              className={`${inputClass} font-mono`}
-            />
-          </div>
-          <div>
-            <label htmlFor="dataVencimento" className={label}>Vencimento</label>
-            <input
-              id="dataVencimento"
-              name="dataVencimento"
-              type="date"
-              required
-              defaultValue={boleto?.dataVencimento}
+              autoFocus
+              defaultValue={boleto?.descricao}
+              placeholder="Ex.: Conta de luz"
               className={inputClass}
             />
           </div>
-        </div>
 
-        <div>
-          <label htmlFor="arquivo" className={label}>
-            {boleto?.anexo ? "Substituir anexo" : "Anexo"} <span className="font-normal text-ink-600">(opcional)</span>
-          </label>
-          <input
-            id="arquivo"
-            name="arquivo"
-            type="file"
-            accept="application/pdf,image/jpeg,image/png"
-            className={`${inputClass} h-auto py-2 file:mr-3 file:rounded-sm file:border-0 file:bg-brand-50 file:px-3 file:py-1 file:text-sm file:font-semibold file:text-brand-700`}
-          />
-          <p className="mt-1 text-xs text-ink-600">PDF, JPG ou PNG.</p>
-        </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="valor" className={label}>Valor (R$)</label>
+              <input
+                id="valor"
+                name="valor"
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                min="0.01"
+                required
+                defaultValue={boleto?.valor}
+                placeholder="0,00"
+                className={`${inputClass} font-mono`}
+              />
+            </div>
+            <div>
+              <label htmlFor="dataVencimento" className={label}>Vencimento</label>
+              <input
+                id="dataVencimento"
+                name="dataVencimento"
+                type="date"
+                required
+                defaultValue={boleto?.dataVencimento}
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="arquivo" className={label}>
+              {boleto?.anexo ? "Substituir anexo" : "Anexo"} <span className="font-normal text-ink-600">(opcional)</span>
+            </label>
+            <input
+              id="arquivo"
+              name="arquivo"
+              type="file"
+              accept="application/pdf,image/jpeg,image/png"
+              className={`${inputClass} h-auto py-2 file:mr-3 file:rounded-sm file:border-0 file:bg-brand-50 file:px-3 file:py-1 file:text-sm file:font-semibold file:text-brand-700`}
+            />
+            <p className="mt-1 text-xs text-ink-600">PDF, JPG ou PNG.</p>
+          </div>
 
 
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onFechar}>
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={salvar.isPending}>
-            {salvar.isPending ? "Salvando…" : "Salvar"}
-          </Button>
-        </div>
-      </form>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={fechar}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={salvar.isPending}>
+              {salvar.isPending ? "Salvando…" : "Salvar"}
+            </Button>
+          </div>
+        </form>
+      )}
     </Modal>
   );
 }

@@ -1,12 +1,13 @@
 import { useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CircleCheck, FileText, Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, CircleCheck, FileText, Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
 import { anexarArquivo, baixarAnexo, excluirBoleto, marcarComoPago } from "@/api/boletos";
 import { AbasResponsavel, consultaDaAba, useAba } from "@/components/AbasResponsavel";
 import { BoletoForm } from "@/components/BoletoForm";
 import { IconButton } from "@/components/IconButton";
 import { Modal } from "@/components/Modal";
+import { CheckAnimado, preferePoucoMovimento } from "@/components/SucessoAnimado";
 import { STATUS, StatusDot } from "@/components/StatusDot";
 import { Button } from "@/components/ui/button";
 import { cn, formatarData, formatarMoeda, hojeISO, inputClass, mensagemErro } from "@/lib/utils";
@@ -55,6 +56,8 @@ export function Boletos() {
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Boleto | null>(null);
   const [excluindo, setExcluindo] = useState<Boleto | null>(null);
+  // id do boleto cujo botão "marcar como pago" está tocando o check animado
+  const [animandoPagamento, setAnimandoPagamento] = useState<string | null>(null);
   const inputAnexo = useRef<HTMLInputElement>(null);
   const anexandoId = useRef<string | null>(null);
 
@@ -64,8 +67,12 @@ export function Boletos() {
   const recarregar = () => queryClient.invalidateQueries({ queryKey: ["boletos"] });
 
   const pagar = useMutation({
-    mutationFn: marcarComoPago,
-    onSuccess: () => (recarregar(), toast.success("Boleto marcado como pago.")),
+    mutationFn: (boleto: Boleto) => marcarComoPago(boleto.id),
+    onSuccess: (_resposta, boleto) => {
+      recarregar();
+      toast.success(`"${boleto.descricao}" marcado como pago.`);
+      if (!preferePoucoMovimento()) setAnimandoPagamento(boleto.id);
+    },
     onError: (e) => toast.error(mensagemErro(e)),
   });
 
@@ -117,14 +124,30 @@ export function Boletos() {
       <IconButton label="Editar" onClick={() => abrirForm(boleto)} className={className}>
         <Pencil />
       </IconButton>
-      <IconButton
-        label={boleto.status === "PAGO" ? "Já está pago" : "Marcar como pago"}
-        disabled={boleto.status === "PAGO" || pagar.isPending}
-        onClick={() => pagar.mutate(boleto.id)}
-        className={cn(className, "hover:text-pago")}
-      >
-        <CircleCheck />
-      </IconButton>
+      {/* relative: o check animado fica por cima do botão, fora dele, para não herdar a opacidade de desabilitado */}
+      <div className="relative">
+        <IconButton
+          label={boleto.status === "PAGO" ? "Já está pago" : "Marcar como pago"}
+          disabled={boleto.status === "PAGO" || pagar.isPending}
+          onClick={() => pagar.mutate(boleto)}
+          // Pago: o check verde aparece com cor cheia, sem o apagado de botão desabilitado.
+          className={cn(className, "hover:text-pago", boleto.status === "PAGO" && "disabled:opacity-100")}
+        >
+          {animandoPagamento === boleto.id ? (
+            <span className="size-[19px]" />
+          ) : boleto.status === "PAGO" ? (
+            <CheckPago />
+          ) : (
+            <CircleCheck />
+          )}
+        </IconButton>
+        {animandoPagamento === boleto.id && (
+          <CheckAnimado
+            className="pointer-events-none absolute top-1/2 left-1/2 size-14 -translate-1/2"
+            onFim={() => setAnimandoPagamento(null)}
+          />
+        )}
+      </div>
       <IconButton label="Excluir" onClick={() => setExcluindo(boleto)} className={cn(className, "hover:text-atrasado")}>
         <Trash2 />
       </IconButton>
@@ -328,5 +351,15 @@ function Vazio({ titulo, texto, children }: { titulo: string; texto?: string; ch
       {texto && <p className="mt-1 max-w-sm text-sm text-ink-600">{texto}</p>}
       {children && <div className="mt-5">{children}</div>}
     </div>
+  );
+}
+
+// Igual ao último quadro do check animado (círculo verde de ~19px com check branco), para a troca
+// da animação por este ícone não dar "pulo". O size-3! vence o tamanho fixo de svg do IconButton.
+function CheckPago() {
+  return (
+    <span aria-hidden className="grid size-[19px] place-items-center rounded-full bg-check-sucesso text-white">
+      <Check className="size-3!" strokeWidth={3.5} />
+    </span>
   );
 }

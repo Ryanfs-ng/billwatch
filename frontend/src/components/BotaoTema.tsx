@@ -1,40 +1,21 @@
-import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
-import { IconButton } from "@/components/IconButton";
+import { useTheme } from "next-themes";
+import { ThemeTogglerButton } from "@/components/animate-ui/components/buttons/theme-toggler";
 import { cn } from "@/lib/utils";
 
-const TEMA_KEY = "billwatch_tema";
-type Tema = "light" | "dark";
-
-function temaInicial(): Tema {
-  try {
-    const salvo = localStorage.getItem(TEMA_KEY);
-    if (salvo === "light" || salvo === "dark") return salvo;
-  } catch {
-    // storage indisponível: segue a preferência do sistema
-  }
-  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
+// Alternador de tema com a animação de "revelar" do animate-ui. O tema em si (classe .dark no <html>,
+// salvo em localStorage) é cuidado pelo ThemeProvider do next-themes, no main.tsx.
 export function BotaoTema({ className }: { className?: string }) {
-  const [tema, setTema] = useState(temaInicial);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = tema;
-    try {
-      localStorage.setItem(TEMA_KEY, tema);
-    } catch {
-      // ignora: o tema só não fica salvo
-    }
-  }, [tema]);
+  const { resolvedTheme } = useTheme();
+  const label = resolvedTheme === "dark" ? "Usar tema claro" : "Usar tema escuro";
 
   return (
-    <IconButton
-      label={tema === "dark" ? "Usar tema claro" : "Usar tema escuro"}
-      onClick={() => setTema(tema === "dark" ? "light" : "dark")}
-      className={cn("size-10 border", className)}
-    >
-      {tema === "dark" ? <Sun /> : <Moon />}
-    </IconButton>
+    <ThemeTogglerButton
+      modes={["light", "dark"]}
+      variant="outline"
+      size="lg"
+      aria-label={label}
+      title={label}
+      className={cn("bg-card text-ink-600 hover:bg-surface-hover hover:text-foreground [&_svg]:size-[18px]", className)}
+    />
   );
 }

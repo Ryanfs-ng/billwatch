@@ -10,6 +10,14 @@ interface ModalProps {
 
 const DURACAO_SAIDA_MS = 120; // igual à transição de saída de dialog.modal no index.css
 
+// O <dialog> aberto fica na "top layer" do navegador, acima de qualquer z-index, e deixa o resto da
+// página inerte. Para os toasts aparecerem por cima do fundo (e continuarem clicáveis), o #toaster
+// vai para dentro do dialog enquanto ele está aberto e volta para o <body> ao fechar.
+function moverToasts(destino: HTMLElement | null | undefined) {
+  const toaster = document.getElementById("toaster");
+  if (toaster && destino && toaster.parentElement !== destino) destino.append(toaster);
+}
+
 // <dialog> nativo: foco preso, Esc e backdrop sem dependência extra. A animação fica no index.css.
 export function Modal({ aberto, onFechar, titulo, descricao, children }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -31,13 +39,19 @@ export function Modal({ aberto, onFechar, titulo, descricao, children }: ModalPr
     if (aberto) {
       window.clearTimeout(timerSaida.current);
       if (!dialog?.open) dialog?.showModal();
+      moverToasts(dialog);
     } else if (dialog?.open) {
+      moverToasts(document.body);
       dialog.close();
     }
   }, [aberto]);
 
+  // Se a tela trocar com o modal aberto, os toasts não podem sumir junto com ele.
+  useEffect(() => () => moverToasts(document.body), []);
+
   // Dispara tanto pelo Esc quanto pelo dialog.close() acima.
   function aoFechar() {
+    moverToasts(document.body);
     window.clearTimeout(timerSaida.current);
     timerSaida.current = window.setTimeout(() => setMostrarConteudo(false), DURACAO_SAIDA_MS);
     onFechar();
@@ -49,10 +63,12 @@ export function Modal({ aberto, onFechar, titulo, descricao, children }: ModalPr
       onClose={aoFechar}
       onClick={(e) => e.target === ref.current && ref.current.close()}
       aria-labelledby="modal-titulo"
-      className="modal m-auto w-[min(100%-2rem,30rem)] rounded-lg border bg-card p-0 text-foreground shadow-md"
+      // O dialog é só um container transparente do tamanho da tela (clicar nele = clicar fora);
+      // o cartão visível é o .modal-painel, que é quem anima (ver index.css).
+      className="modal"
     >
       {mostrarConteudo && (
-        <div className="p-6">
+        <div className="modal-painel w-[min(100%,30rem)] rounded-lg border bg-card p-6 text-foreground shadow-md">
           <h2 id="modal-titulo" className="font-display text-2xl font-extrabold tracking-tight">
             {conteudo.titulo}
           </h2>

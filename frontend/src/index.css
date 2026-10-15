@@ -2,8 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Tema escuro via data-theme="dark" no <html> (Design.md §8). */
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+/* Tema escuro via classe .dark no <html>, aplicada pelo next-themes (ver main.tsx) — Design.md §8. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* Tokens do BillWatch — Design.md §2 e §4. */
 :root {
@@ -32,6 +32,8 @@
   --atrasado-bg: #fbe7e5;
   --pendente: #5b6472;
   --pendente-bg: #eef1f4;
+  /* Verde do check animado (public/animacoes/sucesso.lottie); o ícone de pago fixo usa o mesmo. */
+  --check-sucesso: #23b26d;
 
   --bw-shadow-xs: rgba(0, 0, 0, 0.06) 0 0 6px 0;
   --bw-shadow-sm: rgba(0, 0, 0, 0.08) 0 0 10px 0;
@@ -59,7 +61,7 @@
   color-scheme: light;
 }
 
-[data-theme="dark"] {
+.dark {
   --brand-50: #13233f;
   --brand-100: #1b3163;
   --brand-200: #234180;
@@ -117,6 +119,7 @@
   --color-atrasado-bg: var(--atrasado-bg);
   --color-pendente: var(--pendente);
   --color-pendente-bg: var(--pendente-bg);
+  --color-check-sucesso: var(--check-sucesso);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -155,6 +158,13 @@
 ::view-transition-new(painel-marca) {
   animation: none;
 }
+/* Durante a troca de tema (ThemeToggler, animate-ui) a "foto" nova é revelada por clip-path em vez
+   do fade padrão; a classe só existe enquanto a troca acontece, então o fade das telas continua. */
+html.trocando-tema::view-transition-old(root),
+html.trocando-tema::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),
@@ -163,34 +173,61 @@
   }
 }
 
-/* Animação do Modal (<dialog>): entra com fade + "pop" de escala, sai mais rápido.
-   O estado fechado é a base; [open] é o destino; @starting-style é de onde a entrada começa.
+/* Modal (<dialog>, ver Modal.tsx).
+   O dialog é um container transparente do tamanho da tela e NÃO pode ter transform: os toasts são
+   movidos para dentro dele enquanto está aberto, e um transform faria o position:fixed deles ficar
+   relativo ao modal em vez da tela. Por isso o dialog só faz fade e o "pop" fica no .modal-painel.
+   Estado fechado = base; [open] = destino; @starting-style = de onde a entrada começa.
    overlay/display com allow-discrete mantêm o dialog visível até a saída terminar. */
 dialog.modal {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 1rem;
+  border: 0;
+  background: transparent;
+  overflow-y: auto;
   opacity: 0;
-  scale: 0.94;
-  translate: 0 12px;
   transition:
     opacity 120ms ease-in,
-    scale 120ms ease-in,
-    translate 120ms ease-in,
     overlay 120ms allow-discrete,
     display 120ms allow-discrete;
 }
 dialog.modal[open] {
+  display: grid;
+  place-items: center;
   opacity: 1;
-  scale: 1;
-  translate: 0 0;
   transition:
     opacity 180ms ease-out,
-    scale 260ms cubic-bezier(0.34, 1.4, 0.64, 1), /* passa um pouco de 1 e volta: o "pop" */
-    translate 260ms cubic-bezier(0.34, 1.4, 0.64, 1),
     overlay 260ms allow-discrete,
     display 260ms allow-discrete;
 }
 @starting-style {
   dialog.modal[open] {
     opacity: 0;
+  }
+}
+
+.modal-painel {
+  scale: 0.94;
+  translate: 0 12px;
+  transition:
+    scale 120ms ease-in,
+    translate 120ms ease-in;
+}
+dialog.modal[open] .modal-painel {
+  scale: 1;
+  translate: 0 0;
+  transition:
+    scale 260ms cubic-bezier(0.34, 1.4, 0.64, 1), /* passa um pouco de 1 e volta: o "pop" */
+    translate 260ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+@starting-style {
+  dialog.modal[open] .modal-painel {
     scale: 0.94;
     translate: 0 12px;
   }
@@ -219,11 +256,9 @@ dialog.modal[open]::backdrop {
 
 @media (prefers-reduced-motion: reduce) {
   dialog.modal,
-  dialog.modal[open],
-  dialog.modal::backdrop {
-    scale: 1;
-    translate: 0 0;
-    transition-duration: 0s;
+  dialog.modal::backdrop,
+  .modal-painel {
+    transition-duration: 0s !important;
   }
 }
 

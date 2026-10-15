@@ -12,9 +12,20 @@
       rel="stylesheet"
     />
     <title>BillWatch</title>
+    <!-- Aplica o tema salvo antes da primeira pintura, para não piscar claro antes do escuro. -->
+    <script>
+      try {
+        var tema = localStorage.getItem("billwatch_tema");
+        if (tema === "dark" || ((!tema || tema === "system") && matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <!-- Raiz própria dos toasts: o Modal move este elemento para dentro do <dialog> aberto. -->
+    <div id="toaster"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
