@@ -1,5 +1,4 @@
 import { registrar } from "@/api/auth";
-import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
@@ -16,13 +15,13 @@ export function Cadastro() {
   const [erroConfirmacao, setErroConfirmacao] = useState("");
 
   const navigate = useNavigate();
-  const { signIn } = useAuth();
 
   const mutation = useMutation({
     mutationFn: registrar,
-    onSuccess: (data) => {
-      signIn(data.token);
-      navigate("/dashboard", { replace: true, viewTransition: true });
+    onSuccess: () => {
+      toast.success("Conta criada! Entre com seu e-mail e senha.");
+      // O e-mail vai no state da navegação para o Login já abrir preenchido.
+      navigate("/login", { replace: true, viewTransition: true, state: { email } });
     },
     onError: (erro) => {
       toast.error(

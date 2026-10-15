@@ -5,6 +5,7 @@ import com.billwatch.domain.StatusBoleto;
 import com.billwatch.domain.Usuario;
 import com.billwatch.dto.BoletoRequest;
 import com.billwatch.dto.BoletoResponse;
+import com.billwatch.dto.DashboardResponse;
 import com.billwatch.repository.BoletoRepository;
 import com.billwatch.repository.UsuarioRepository;
 import jakarta.mail.Multipart;
@@ -18,9 +19,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -42,7 +45,7 @@ public class BoletoService {
     private static final Map<String, String> TIPOS_ACEITOS = Map.of(
             "application/pdf", ".pdf",
             "image/jpeg", ".jpg",
-            "imagem/png", ".png"
+            "image/png", ".png"
     );
 
     public StatusBoleto calcularStatus(Boleto boleto, LocalDate hoje){
@@ -95,6 +98,28 @@ public class BoletoService {
             boleto.setResponsavel(buscarResponsavel(dados.responsavelId()));
         }
         return entidadeParaResponse(boletoRepository.save(boleto));
+    }
+
+    // ponytail: agrega em memória sobre os boletos do usuário; vira query agregada se o volume crescer.
+    public DashboardResponse dashboard(String email) {
+        LocalDate hoje = LocalDate.now();
+        YearMonth mesAtual = YearMonth.from(hoje);
+        long atrasados = 0;
+        long aVencer = 0;
+        BigDecimal emAberto = BigDecimal.ZERO;
+        BigDecimal pagoNoMes = BigDecimal.ZERO;
+
+        for (Boleto boleto : boletoRepository.findByResponsavelEmail(email)) {
+            StatusBoleto status = calcularStatus(boleto, hoje);
+            if (status == StatusBoleto.ATRASADO) atrasados++;
+            if (status == StatusBoleto.A_VENCER) aVencer++;
+            if (status != StatusBoleto.PAGO) {
+                emAberto = emAberto.add(boleto.getValor());
+            } else if (YearMonth.from(boleto.getDataPagamento()).equals(mesAtual)) {
+                pagoNoMes = pagoNoMes.add(boleto.getValor());
+            }
+        }
+        return new DashboardResponse(atrasados, aVencer, emAberto, pagoNoMes);
     }
 
     public BoletoResponse pagarBoleto (UUID id) {

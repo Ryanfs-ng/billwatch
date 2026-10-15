@@ -44,7 +44,7 @@ public class UsuarioService {
                 .email(dados.email())
                 .senha(passwordEncoder.encode(dados.senha()))
                 .build());
-        return new AuthResponse(jwtService.gerarToken(usuario.getEmail()));
+        return new AuthResponse(jwtService.gerarToken(usuario.getEmail(), usuario.getNome()));
     }
 
     public AuthResponse login (LoginRequest dados) {
@@ -52,7 +52,7 @@ public class UsuarioService {
                 .filter(u -> passwordEncoder.matches(dados.senha(),
                         u.getSenha()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas"));
-        return new AuthResponse(jwtService.gerarToken(usuario.getEmail()));
+        return new AuthResponse(jwtService.gerarToken(usuario.getEmail(), usuario.getNome()));
     }
 
     public void esqueciSenha(String email) {

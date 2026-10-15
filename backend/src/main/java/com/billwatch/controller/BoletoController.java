@@ -2,6 +2,7 @@ package com.billwatch.controller;
 
 import com.billwatch.dto.BoletoRequest;
 import com.billwatch.dto.BoletoResponse;
+import com.billwatch.dto.DashboardResponse;
 import com.billwatch.service.BoletoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-// Endpoints: GET /boletos/meus, GET /boletos, POST /boletos, PUT /boletos/{id},
-// PATCH /boletos/{id}/pagar, DELETE /boletos/{id}, GET /boletos/dashboard (a implementar).
 @RestController
 @RequestMapping("/boletos")
 @RequiredArgsConstructor
@@ -30,6 +29,11 @@ public class BoletoController {
     @GetMapping("/meus-boletos")
     public List<BoletoResponse> listarMeusBoletos(Authentication auth){
         return boletoService.listarMeusBoletos(auth.getName());
+    }
+
+    @GetMapping("/dashboard")
+    public DashboardResponse dashboard(Authentication auth){
+        return boletoService.dashboard(auth.getName());
     }
 
     @GetMapping

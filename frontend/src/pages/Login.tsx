@@ -6,11 +6,13 @@ import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 export function Login() {
-  const [email, setEmail] = useState("");
+  const location = useLocation();
+  // Vindo do cadastro, o e-mail chega preenchido.
+  const [email, setEmail] = useState<string>(location.state?.email ?? "");
   const [senha, setSenha] = useState("");
   const [recuperandoSenha, setRecuperandoSenha] = useState(false);
 
