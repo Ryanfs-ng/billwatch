@@ -11,6 +11,7 @@ import { Modal } from "@/components/Modal";
 import { CheckAnimado, preferePoucoMovimento } from "@/components/SucessoAnimado";
 import { STATUS, StatusDot } from "@/components/StatusDot";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { HaloSegmented } from "@/components/ui/halo-segmented";
 import { consultaDoGrupo } from "@/pages/Grupo";
 import { cn, formatarData, formatarMoeda, hojeISO, inputClass, mensagemErro } from "@/lib/utils";
 import type { Boleto, StatusBoleto } from "@/types";
@@ -25,12 +26,12 @@ export interface Filtros {
 
 const FILTROS_VAZIOS: Filtros = { busca: "", status: "", periodo: "qualquer" };
 
-const PERIODOS: Record<Periodo, string> = {
-  qualquer: "Qualquer período",
-  "7": "Próximos 7 dias",
-  "30": "Próximos 30 dias",
-  mes: "Este mês",
-};
+const PERIODOS: { value: Periodo; label: string }[] = [
+  { value: "qualquer", label: "Todos" },
+  { value: "7", label: "7 dias" },
+  { value: "30", label: "30 dias" },
+  { value: "mes", label: "Este mês" },
+];
 
 export function filtrarBoletos(boletos: Boleto[], { busca, status, periodo }: Filtros, hoje = hojeISO()): Boleto[] {
   const termo = busca.trim().toLocaleLowerCase("pt-BR");
@@ -205,18 +206,15 @@ export function Boletos() {
             ))}
           </select>
         </div>
-        <div className="lg:w-60">
-          <label htmlFor="periodo" className="mb-1.5 block text-[13px] font-semibold">Vencimento</label>
-          <select
-            id="periodo"
+        <div>
+          <span id="periodo" className="mb-1.5 block text-[13px] font-semibold">Vencimento</span>
+          <HaloSegmented
+            aria-labelledby="periodo"
+            items={PERIODOS}
             value={filtros.periodo}
-            onChange={(e) => setFiltros({ ...filtros, periodo: e.target.value as Periodo })}
-            className={inputClass}
-          >
-            {Object.entries(PERIODOS).map(([valor, label]) => (
-              <option key={valor} value={valor}>{label}</option>
-            ))}
-          </select>
+            onValueChange={(periodo) => setFiltros({ ...filtros, periodo })}
+            className="w-full sm:w-auto"
+          />
         </div>
         <Button variant="outline" disabled={!temFiltro} onClick={() => setFiltros(FILTROS_VAZIOS)}>
           Limpar filtros

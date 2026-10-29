@@ -5,6 +5,7 @@ import { ImageUp, Trash2 } from "lucide-react";
 import { alterarEmail, alterarSenha, buscarPerfil, enviarFoto, removerFoto, salvarNotificacoes } from "@/api/usuarios";
 import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/button";
+import { HaloButton } from "@/components/ui/halo-button";
 import { HaloSwitch } from "@/components/ui/halo-switch";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
@@ -57,6 +58,21 @@ function Secao({ titulo, descricao, children }: { titulo: string; descricao: str
       <p className="mt-1 text-sm text-ink-600">{descricao}</p>
       <div className="mt-5">{children}</div>
     </section>
+  );
+}
+
+function BotaoSalvar({ salvando, className, children }: { salvando: boolean; className?: string; children: string }) {
+  return (
+    <HaloButton
+      type="submit"
+      isLoading={salvando}
+      loadingText="Salvando…"
+      loadingCharDurationSec={0.22}
+      loadingStaggerSec={0.028}
+      className={className}
+    >
+      {children}
+    </HaloButton>
   );
 }
 
@@ -195,9 +211,7 @@ function SecaoEmail({ perfil }: { perfil: Perfil }) {
             onChange={(e) => setSenhaAtual(e.target.value)}
           />
         </div>
-        <Button type="submit" disabled={salvar.isPending} className="h-10 justify-self-start">
-          {salvar.isPending ? "Salvando…" : "Alterar e-mail"}
-        </Button>
+        <BotaoSalvar salvando={salvar.isPending} className="justify-self-start">Alterar e-mail</BotaoSalvar>
       </form>
     </Secao>
   );
@@ -276,9 +290,7 @@ function SecaoSenha() {
           />
           {erroConfirmacao && <p className="mt-1.5 text-xs text-destructive">{erroConfirmacao}</p>}
         </div>
-        <Button type="submit" disabled={salvar.isPending} className="h-10 justify-self-start">
-          {salvar.isPending ? "Salvando…" : "Alterar senha"}
-        </Button>
+        <BotaoSalvar salvando={salvar.isPending} className="justify-self-start">Alterar senha</BotaoSalvar>
       </form>
     </Secao>
   );
@@ -338,9 +350,7 @@ function SecaoNotificacoes({ perfil }: { perfil: Perfil }) {
           marcado={resumoSemanalAtivo}
           onMudar={setResumoSemanalAtivo}
         />
-        <Button type="submit" disabled={salvar.isPending} className="h-10 self-start">
-          {salvar.isPending ? "Salvando…" : "Salvar preferências"}
-        </Button>
+        <BotaoSalvar salvando={salvar.isPending} className="self-start">Salvar preferências</BotaoSalvar>
       </form>
     </Secao>
   );

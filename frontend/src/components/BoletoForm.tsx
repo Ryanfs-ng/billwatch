@@ -5,6 +5,7 @@ import { listarUsuarios } from "@/api/usuarios";
 import { Modal } from "@/components/Modal";
 import { preferePoucoMovimento, SucessoAnimado } from "@/components/SucessoAnimado";
 import { Button } from "@/components/ui/button";
+import { HaloDropzone } from "@/components/ui/halo-dropzone";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { inputClass, mensagemErro } from "@/lib/utils";
@@ -149,14 +150,13 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
             <label htmlFor="arquivo" className={label}>
               {boleto?.anexo ? "Substituir anexo" : "Anexo"} <span className="font-normal text-ink-600">(opcional)</span>
             </label>
-            <input
+            <HaloDropzone
               id="arquivo"
               name="arquivo"
-              type="file"
               accept="application/pdf,image/jpeg,image/png"
-              className={`${inputClass} h-auto py-2 file:mr-3 file:rounded-sm file:border-0 file:bg-brand-50 file:px-3 file:py-1 file:text-sm file:font-semibold file:text-brand-700`}
+              formatHint="PDF, JPG ou PNG."
+              onRejeitado={() => toast.error("Envie um arquivo PDF, JPG ou PNG.")}
             />
-            <p className="mt-1 text-xs text-ink-600">PDF, JPG ou PNG.</p>
           </div>
 
 

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { StatusDot } from "../components/StatusDot";
 import { filtrarBoletos } from "../pages/Boletos";
-import { proximosVencimentos } from "../pages/Dashboard";
+import { meses, porMes, proximosVencimentos } from "../pages/Dashboard";
 import { corDoDia, diasDoMes } from "../pages/Calendario";
 import type { Boleto } from "../types";
 
@@ -74,5 +74,17 @@ describe("calendário", () => {
     expect(corDoDia([boleto("a", "2026-09-01", "PAGO"), boleto("b", "2026-09-01", "ATRASADO")])).toBe("atrasado");
     expect(corDoDia([boleto("a", "2026-09-01", "PAGO"), boleto("b", "2026-09-01", "PENDENTE")])).toBe("aVencer");
     expect(corDoDia([boleto("a", "2026-09-01", "PAGO")])).toBe("pago");
+  });
+});
+
+describe("gráficos do dashboard", () => {
+  it("lista meses atravessando o ano", () => {
+    expect(meses("2026-01-20", -2, 3)).toEqual(["2025-11", "2025-12", "2026-01"]);
+  });
+
+  it("soma valor pago por mês de pagamento", () => {
+    const pago = { ...boleto("Água", "2026-08-10", "PAGO"), valor: 50, dataPagamento: "2026-09-02" };
+    const lista2 = [pago, { ...pago, id: "x", dataPagamento: "2026-09-20" }, boleto("Gás", "2026-09-10", "PENDENTE")];
+    expect(porMes(lista2, ["2026-08", "2026-09"], (b) => b.dataPagamento, (b) => b.valor)).toEqual([0, 100]);
   });
 });
