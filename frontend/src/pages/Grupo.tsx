@@ -1,25 +1,21 @@
 import { useState, type FormEvent } from "react";
-import { isAxiosError } from "axios";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, LogIn, LogOut, Plus, RefreshCw, Users } from "lucide-react";
 import { buscarMeuGrupo, criarGrupo, entrarNoGrupo, gerarNovoCodigo, sairDoGrupo } from "@/api/grupos";
+import { Avatar } from "@/components/Avatar";
 import { IconButton } from "@/components/IconButton";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
-import { mensagemErro } from "@/lib/utils";
+import { mensagemErro, mensagemPorStatus } from "@/lib/utils";
 import type { Grupo as GrupoTipo } from "@/types";
 
 export const consultaDoGrupo = { queryKey: ["grupo"], queryFn: buscarMeuGrupo };
 
-function mensagemErroGrupo(erro: unknown): string {
-  const status = isAxiosError(erro) ? erro.response?.status : undefined;
-  if (status === 404) return "Código de convite inválido.";
-  if (status === 409) return "Você já participa de um grupo.";
-  return mensagemErro(erro);
-}
+const mensagemErroGrupo = (erro: unknown) =>
+  mensagemPorStatus(erro, { 404: "Código de convite inválido.", 409: "Você já participa de um grupo." });
 
 function useRecarregarGrupo() {
   const queryClient = useQueryClient();
@@ -193,12 +189,15 @@ function MeuGrupo({ grupo }: { grupo: GrupoTipo }) {
         <p className="text-[13px] font-semibold">Membros</p>
         <ul className="mt-2 divide-y">
           {grupo.membros.map((membro) => (
-            <li key={membro.id} className="flex flex-col py-3">
-              <span className="font-medium">
-                {membro.nome}
-                {membro.email === email && <span className="font-normal text-ink-600"> (você)</span>}
-              </span>
-              <span className="truncate text-sm text-ink-600">{membro.email}</span>
+            <li key={membro.id} className="flex items-center gap-3 py-3">
+              <Avatar usuarioId={membro.id} temFoto={membro.temFoto} nome={membro.nome} email={membro.email} />
+              <div className="flex min-w-0 flex-col">
+                <span className="font-medium">
+                  {membro.nome}
+                  {membro.email === email && <span className="font-normal text-ink-600"> (você)</span>}
+                </span>
+                <span className="truncate text-sm text-ink-600">{membro.email}</span>
+              </div>
             </li>
           ))}
         </ul>

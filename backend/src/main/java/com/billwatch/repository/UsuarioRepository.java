@@ -18,5 +18,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 
     boolean existsByGrupoId(UUID grupoId);
 
+    List<Usuario> findByResumoSemanalAtivoTrue();
+
     Optional<Usuario> findByResetTokenHash(String resetTokenHash);
 }

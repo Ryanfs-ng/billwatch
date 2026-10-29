@@ -24,7 +24,7 @@ class BoletoServiceTest {
     @Test
     void dashboardAgregaPorStatus() {
         BoletoRepository repo = mock(BoletoRepository.class);
-        BoletoService service = new BoletoService(repo, mock(UsuarioRepository.class));
+        BoletoService service = new BoletoService(repo, mock(UsuarioRepository.class), mock(ArquivoService.class));
         ReflectionTestUtils.setField(service, "diasAviso", 7);
 
         LocalDate hoje = LocalDate.now();

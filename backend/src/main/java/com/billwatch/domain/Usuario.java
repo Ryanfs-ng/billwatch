@@ -45,6 +45,19 @@ public class Usuario {
     @JoinColumn(name = "grupo_id")
     private Grupo grupo;
 
+    private String foto;
+
+    @Builder.Default
+    private int diasAviso = 7;
+
+    @Builder.Default
+    private boolean avisoVencimentoAtivo = true;
+
+    @Builder.Default
+    private boolean resumoSemanalAtivo = false;
+
+    private Instant credenciaisAlteradasEm;
+
     public boolean podeVer(Usuario outro) {
         return id.equals(outro.getId())
                 || (grupo != null && outro.getGrupo() != null && grupo.getId().equals(outro.getGrupo().getId()));

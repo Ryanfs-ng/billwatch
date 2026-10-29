@@ -4,7 +4,16 @@ export interface Usuario {
   id: string;
   nome: string;
   email: string;
+  temFoto: boolean;
 }
+
+export interface PreferenciasNotificacao {
+  diasAviso: number;
+  avisoVencimentoAtivo: boolean;
+  resumoSemanalAtivo: boolean;
+}
+
+export interface Perfil extends Usuario, PreferenciasNotificacao {}
 
 export interface Grupo {
   id: string;

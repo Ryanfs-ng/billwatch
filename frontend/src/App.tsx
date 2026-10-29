@@ -16,6 +16,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Boletos } from "./pages/Boletos";
 import { Calendario } from "./pages/Calendario";
 import { Grupo } from "./pages/Grupo";
+import { Configuracoes } from "./pages/Configuracoes";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -33,6 +34,7 @@ const router = createBrowserRouter(
           <Route path="/boletos" element={<Boletos />} />
           <Route path="/calendario" element={<Calendario />} />
           <Route path="/grupo" element={<Grupo />} />
+          <Route path="/configuracoes" element={<Configuracoes />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />

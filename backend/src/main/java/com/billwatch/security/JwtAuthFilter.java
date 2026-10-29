@@ -1,5 +1,7 @@
 package com.billwatch.security;
 
+import com.billwatch.repository.UsuarioRepository;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
 @Component
@@ -20,14 +23,19 @@ import java.util.List;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final UsuarioRepository usuarioRepository;
 
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
 
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (header != null && header.startsWith("Bearer ")) {
             try {
-                String email = jwtService.extrairEmail(header.substring(7));
-                SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(email, null, List.of()));
+                Claims claims = jwtService.extrairClaims(header.substring(7));
+                Instant emitidoEm = claims.getIssuedAt().toInstant();
+                usuarioRepository.findByEmail(claims.getSubject())
+                        .filter(u -> u.getCredenciaisAlteradasEm() == null || !emitidoEm.isBefore(u.getCredenciaisAlteradasEm()))
+                        .ifPresent(u -> SecurityContextHolder.getContext().setAuthentication(
+                                new UsernamePasswordAuthenticationToken(u.getEmail(), null, List.of())));
             } catch (JwtException e){
             }
         }

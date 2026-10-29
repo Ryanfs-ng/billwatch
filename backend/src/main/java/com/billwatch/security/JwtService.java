@@ -1,5 +1,6 @@
 package com.billwatch.security;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -34,11 +35,14 @@ public class JwtService {
     }
 
     public String extrairEmail(String token){
+        return extrairClaims(token).getSubject();
+    }
+
+    public Claims extrairClaims(String token) {
         return Jwts.parser()
                 .verifyWith(secretKey())
                 .build()
                 .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+                .getPayload();
     }
 }

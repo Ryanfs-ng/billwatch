@@ -24,6 +24,8 @@ server:
 
 boletos:
   dias-aviso: 7
+  aviso-cron: ${BOLETOS_AVISO_CRON:0 0 8 * * *}
+  resumo-cron: ${BOLETOS_RESUMO_CRON:0 0 8 * * MON}
 
 jwt:
   secret: ${JWT_SECRET}
@@ -33,4 +35,5 @@ uploads:
   diretorio: ./uploads
 
 app:
-  link-reset-senha: http://localhost:5173/redefinir-senha
+  url-frontend: http://localhost:5173
+  link-reset-senha: ${app.url-frontend}/redefinir-senha

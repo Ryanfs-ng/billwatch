@@ -60,12 +60,3 @@ O frontend usa **Tailwind CSS v4** (plugin `@tailwindcss/vite`, sem `tailwind.co
 cd frontend
 npx shadcn@latest add dialog
 ```
-
-### Shadcn MCP (Claude Code)
-
-`frontend/.mcp.json` registra o servidor MCP do shadcn (`npx shadcn@latest mcp`), que permite ao Claude Code buscar e instalar componentes. Vale apenas para sessões abertas em `frontend/`; para valer no projeto todo, mova o arquivo para a raiz. Foi criado com:
-
-```bash
-cd frontend
-npx shadcn@latest mcp init --client claude
-```

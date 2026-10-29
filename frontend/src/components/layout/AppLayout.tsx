@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { NavLink, Outlet } from "react-router-dom";
 import {
   Bell,
@@ -9,10 +10,13 @@ import {
   LayoutGrid,
   LogOut,
   Menu,
+  Settings,
   Users,
   X,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { buscarPerfil } from "@/api/usuarios";
+import { Avatar } from "@/components/Avatar";
 import { BotaoTema } from "@/components/BotaoTema";
 import { IconButton } from "@/components/IconButton";
 import { useAuth } from "@/context/AuthContext";
@@ -33,10 +37,7 @@ export function AppLayout() {
   const [colapsada, setColapsada] = useState(false);
   const [menuAberto, setMenuAberto] = useState(false);
 
-  const partes = nome?.trim().split(/\s+/) ?? [];
-  const iniciais = partes.length
-    ? (partes[0][0] + (partes.length > 1 ? partes[partes.length - 1][0] : "")).toUpperCase()
-    : (email ?? "").slice(0, 2).toUpperCase();
+  const perfil = useQuery({ queryKey: ["perfil"], queryFn: buscarPerfil });
 
   return (
     <div className="flex h-svh overflow-hidden bg-background">
@@ -91,18 +92,27 @@ export function AppLayout() {
         </nav>
 
         <div className="shrink-0 border-t p-3">
-          <div className={cn("flex items-center gap-3 px-1 py-2", colapsada && "md:justify-center")}>
-            <span
-              aria-hidden
-              className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-100 text-sm font-bold text-brand-700"
-            >
-              {iniciais}
-            </span>
-            <div className={cn("min-w-0", colapsada && "md:hidden")}>
+          <NavLink
+            to="/configuracoes"
+            viewTransition
+            title="Configurações"
+            onClick={() => setMenuAberto(false)}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-3 rounded-md px-1 py-2 transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40",
+                isActive && "bg-brand-50 hover:bg-brand-50",
+                colapsada && "md:justify-center",
+              )
+            }
+          >
+            <Avatar usuarioId={perfil.data?.id} temFoto={perfil.data?.temFoto} nome={nome} email={email} />
+            <div className={cn("min-w-0 flex-1", colapsada && "md:hidden")}>
               {nome && <p className="truncate text-sm font-semibold">{nome}</p>}
               <p className="truncate text-xs text-ink-600">{email}</p>
             </div>
-          </div>
+            <Settings className={cn("size-4 shrink-0 text-ink-400", colapsada && "md:hidden")} aria-hidden />
+            <span className="sr-only">Configurações</span>
+          </NavLink>
           <button
             type="button"
             onClick={signOut}

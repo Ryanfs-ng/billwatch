@@ -10,7 +10,6 @@ import com.billwatch.repository.BoletoRepository;
 import com.billwatch.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,8 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
@@ -33,12 +30,10 @@ public class BoletoService {
 
     private final BoletoRepository boletoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ArquivoService arquivoService;
 
     @Value("${boletos.dias-aviso}")
     private int diasAviso;
-
-    @Value("${uploads.diretorio}")
-    private String diretorioUploads;
 
     private static final Map<String, String> TIPOS_ACEITOS = Map.of(
             "application/pdf", ".pdf",
@@ -102,6 +97,9 @@ public class BoletoService {
     public BoletoResponse editarBoleto(UUID id, BoletoRequest dados, String email) {
         Boleto boleto = buscar(id, email);
         boleto.setDescricao(dados.descricao());
+        if (!dados.dataVencimento().equals(boleto.getDataVencimento())) {
+            boleto.setNotificadoEm(null);
+        }
         boleto.setDataVencimento(dados.dataVencimento());
         boleto.setValor(dados.valor());
         if (dados.responsavelId() != null) {
@@ -143,35 +141,18 @@ public class BoletoService {
     public void deletarBoleto (UUID id, String email) throws IOException {
         Boleto boleto = buscar(id, email);
         boletoRepository.deleteById(id);
-        if (boleto.getAnexo() != null){
-            Files.deleteIfExists(Path.of(diretorioUploads).resolve(boleto.getAnexo()));
-        }
+        arquivoService.apagar(boleto.getAnexo());
     }
 
     public BoletoResponse anexar(UUID id, MultipartFile arquivo, String email) throws IOException {
         Boleto boleto = buscar(id, email);
-        String extensao = TIPOS_ACEITOS.get(arquivo.getContentType());
-        if (extensao == null){
-            throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Envie PDF, JPG ou PNG");
-        }
-        Path pasta = Path.of(diretorioUploads);
-        Files.createDirectories(pasta);
-        String nome = UUID.randomUUID() + extensao;
-        Files.copy(arquivo.getInputStream(), pasta.resolve(nome));
-        if (boleto.getAnexo() != null){
-            Files.deleteIfExists(pasta.resolve(boleto.getAnexo()));
-        }
+        String nome = arquivoService.salvar(arquivo, TIPOS_ACEITOS, "Envie PDF, JPG ou PNG");
+        arquivoService.apagar(boleto.getAnexo());
         boleto.setAnexo(nome);
         return entidadeParaResponse(boletoRepository.save(boleto));
     }
 
     public Resource carregarAnexo(UUID id, String email){
-        String nome = buscar(id, email).getAnexo();
-        Resource recurso = nome == null ? null : new FileSystemResource(Path.of(diretorioUploads).resolve(nome));
-        if (recurso == null || !recurso.exists()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Boleto sem anexo");
-        }
-        return recurso;
-
+        return arquivoService.carregar(buscar(id, email).getAnexo(), "Boleto sem anexo");
     }
 }
