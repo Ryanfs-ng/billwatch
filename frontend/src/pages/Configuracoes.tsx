@@ -5,6 +5,7 @@ import { ImageUp, Trash2 } from "lucide-react";
 import { alterarEmail, alterarSenha, buscarPerfil, enviarFoto, removerFoto, salvarNotificacoes } from "@/api/usuarios";
 import { Avatar } from "@/components/Avatar";
 import { Button } from "@/components/ui/button";
+import { HaloSwitch } from "@/components/ui/halo-switch";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
 import { inputClass, mensagemErro, mensagemPorStatus } from "@/lib/utils";
@@ -314,7 +315,7 @@ function SecaoNotificacoes({ perfil }: { perfil: Perfil }) {
           marcado={avisoVencimentoAtivo}
           onMudar={setAvisoVencimentoAtivo}
         />
-        <div className="pl-8 sm:max-w-60">
+        <div className="sm:max-w-60">
           <label htmlFor="dias-aviso" className={label}>Antecedência</label>
           <select
             id="dias-aviso"
@@ -355,19 +356,18 @@ interface OpcaoProps {
 
 function Opcao({ id, titulo, texto, marcado, onMudar }: OpcaoProps) {
   return (
-    <label htmlFor={id} className="flex cursor-pointer items-start gap-3">
-      <input
+    <div className="flex items-center justify-between gap-4">
+      <div>
+        <span id={`${id}-titulo`} className="block text-sm font-semibold">{titulo}</span>
+        <span id={`${id}-texto`} className="block text-sm text-ink-600">{texto}</span>
+      </div>
+      <HaloSwitch
         id={id}
-        type="checkbox"
-        role="switch"
         checked={marcado}
-        onChange={(e) => onMudar(e.target.checked)}
-        className="mt-0.5 size-5 shrink-0 cursor-pointer accent-brand-500"
+        onCheckedChange={onMudar}
+        aria-labelledby={`${id}-titulo`}
+        aria-describedby={`${id}-texto`}
       />
-      <span>
-        <span className="block text-sm font-semibold">{titulo}</span>
-        <span className="block text-sm text-ink-600">{texto}</span>
-      </span>
-    </label>
+    </div>
   );
 }

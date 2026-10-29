@@ -3,6 +3,7 @@ package com.billwatch.controller;
 import com.billwatch.dto.EntrarGrupoRequest;
 import com.billwatch.dto.GrupoRequest;
 import com.billwatch.dto.GrupoResponse;
+import com.billwatch.security.LimiteTentativas;
 import com.billwatch.service.GrupoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class GrupoController {
     }
 
     @PostMapping("/entrar")
+    @LimiteTentativas(maximo = 10, periodoMinutos = 15)
     public GrupoResponse entrar(@Valid @RequestBody EntrarGrupoRequest dados, Authentication auth) {
         return grupoService.entrar(dados.codigo(), auth.getName());
     }

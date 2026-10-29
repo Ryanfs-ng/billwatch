@@ -4,7 +4,7 @@ import { EsqueciSenhaModal } from "@/components/EsqueciSenhaModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
+import { mensagemPorStatus } from "@/lib/utils";
 import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -26,9 +26,7 @@ export function Login() {
     },
     onError: (erro) => {
       toast.error(
-        isAxiosError(erro) && erro.response?.status === 401
-          ? "E-mail ou senha inválidos."
-          : "Não foi possível entrar. Tente novamente.",
+        mensagemPorStatus(erro, { 401: "E-mail ou senha inválidos." }, "Não foi possível entrar. Tente novamente."),
       );
     },
   });

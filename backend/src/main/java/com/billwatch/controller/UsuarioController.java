@@ -6,6 +6,7 @@ import com.billwatch.dto.AuthResponse;
 import com.billwatch.dto.NotificacoesRequest;
 import com.billwatch.dto.PerfilResponse;
 import com.billwatch.dto.UsuarioResponse;
+import com.billwatch.security.LimiteTentativas;
 import com.billwatch.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,11 +41,13 @@ public class UsuarioController {
     }
 
     @PutMapping("/eu/email")
+    @LimiteTentativas(maximo = 5, periodoMinutos = 15)
     public AuthResponse alterarEmail(@Valid @RequestBody AlterarEmailRequest dados, Authentication auth) {
         return usuarioService.alterarEmail(auth.getName(), dados.novoEmail(), dados.senhaAtual());
     }
 
     @PutMapping("/eu/senha")
+    @LimiteTentativas(maximo = 5, periodoMinutos = 15)
     public AuthResponse alterarSenha(@Valid @RequestBody AlterarSenhaRequest dados, Authentication auth) {
         return usuarioService.alterarSenha(auth.getName(), dados.senhaAtual(), dados.novaSenha());
     }

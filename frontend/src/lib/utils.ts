@@ -14,17 +14,28 @@ export function hojeISO(dias = 0): string {
   return d.toLocaleDateString("sv-SE");
 }
 
-export function mensagemErro(erro: unknown): string {
+const ERRO_PADRAO = "Não foi possível concluir a ação. Tente novamente.";
+
+export function mensagemErro(erro: unknown, padrao = ERRO_PADRAO): string {
   if (axios.isAxiosError(erro)) {
+    if (erro.response?.status === 429) return mensagemLimiteTentativas(erro.response.headers["retry-after"]);
     const msg = erro.response?.data?.message;
     if (typeof msg === "string" && msg) return msg;
   }
-  return "Não foi possível concluir a ação. Tente novamente.";
+  return padrao;
 }
 
-export function mensagemPorStatus(erro: unknown, mensagens: Record<number, string>): string {
+export function mensagemPorStatus(erro: unknown, mensagens: Record<number, string>, padrao = ERRO_PADRAO): string {
   const status = axios.isAxiosError(erro) ? erro.response?.status : undefined;
-  return (status && mensagens[status]) || mensagemErro(erro);
+  return (status && mensagens[status]) || mensagemErro(erro, padrao);
+}
+
+export function mensagemLimiteTentativas(retryAfter: unknown): string {
+  const segundos = Math.ceil(Number(retryAfter));
+  if (!(segundos > 0)) return "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
+  if (segundos < 60) return `Muitas tentativas. Tente novamente em ${segundos} ${segundos === 1 ? "segundo" : "segundos"}.`;
+  const minutos = Math.ceil(segundos / 60);
+  return `Muitas tentativas. Tente novamente em ${minutos} ${minutos === 1 ? "minuto" : "minutos"}.`;
 }
 
 export const inputClass =

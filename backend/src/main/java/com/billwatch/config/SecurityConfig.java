@@ -53,6 +53,7 @@ public class SecurityConfig {
         cfg.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
         cfg.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        cfg.setExposedHeaders(List.of("Retry-After"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);
         return source;

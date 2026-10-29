@@ -2,7 +2,7 @@ import { registrar } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
+import { mensagemPorStatus } from "@/lib/utils";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -24,9 +24,11 @@ export function Cadastro() {
     },
     onError: (erro) => {
       toast.error(
-        isAxiosError(erro) && erro.response?.status === 409
-          ? "Este e-mail já está cadastrado."
-          : "Não foi possível criar a conta. Tente novamente.",
+        mensagemPorStatus(
+          erro,
+          { 409: "Este e-mail já está cadastrado." },
+          "Não foi possível criar a conta. Tente novamente.",
+        ),
       );
     },
   });
