@@ -1,7 +1,8 @@
 import { useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, CircleCheck, FileText, Paperclip, Pencil, Plus, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Check, CircleCheck, FileText, Paperclip, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { anexarArquivo, baixarAnexo, excluirBoleto, marcarComoPago } from "@/api/boletos";
 import { AbasResponsavel, consultaDaAba, useAba } from "@/components/AbasResponsavel";
 import { BoletoForm } from "@/components/BoletoForm";
@@ -9,7 +10,8 @@ import { IconButton } from "@/components/IconButton";
 import { Modal } from "@/components/Modal";
 import { CheckAnimado, preferePoucoMovimento } from "@/components/SucessoAnimado";
 import { STATUS, StatusDot } from "@/components/StatusDot";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { consultaDoGrupo } from "@/pages/Grupo";
 import { cn, formatarData, formatarMoeda, hojeISO, inputClass, mensagemErro } from "@/lib/utils";
 import type { Boleto, StatusBoleto } from "@/types";
 
@@ -62,6 +64,7 @@ export function Boletos() {
 
   const queryClient = useQueryClient();
   const consulta = useQuery(consultaDaAba(aba));
+  const grupo = useQuery({ ...consultaDoGrupo, enabled: aba === "todos" });
 
   const recarregar = () => queryClient.invalidateQueries({ queryKey: ["boletos"] });
 
@@ -162,6 +165,19 @@ export function Boletos() {
       </div>
 
       <AbasResponsavel />
+
+      {aba === "todos" && grupo.data === null && (
+        <div className="mt-6 flex flex-col gap-3 rounded-lg border border-brand-200 bg-brand-50 p-4 sm:flex-row sm:items-center">
+          <Users className="size-5 shrink-0 text-brand-500" aria-hidden />
+          <p className="flex-1 text-sm">
+            Você ainda não participa de um grupo, por isso aqui aparecem só os seus boletos. Entre ou crie um grupo
+            para compartilhar boletos com quem divide as contas.
+          </p>
+          <Link to="/grupo" viewTransition className={cn(buttonVariants({ variant: "outline" }), "self-start sm:self-auto")}>
+            Ir para Grupo
+          </Link>
+        </div>
+      )}
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:flex lg:items-end">
         <div className="lg:w-60">

@@ -12,7 +12,7 @@ const DIFERENCIAIS = [
 export function AuthLayout() {
   return (
     <div className="grid min-h-screen md:grid-cols-2">
-      <div className="hidden items-center justify-center bg-brand-900 px-16 py-12 text-white [view-transition-name:painel-marca] md:flex">
+      <div className="hidden items-center justify-center bg-linear-to-r from-brand-900 via-brand-900 to-brand-600 px-16 py-12 text-white [view-transition-name:painel-marca] md:flex">
         <div className="flex w-full max-w-md flex-col gap-10 xl:max-w-lg 2xl:max-w-xl 2xl:gap-12">
           <div className="flex items-center gap-2.5">
             <img src={logo} alt="" className="h-8 w-auto 2xl:h-10" />

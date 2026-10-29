@@ -9,7 +9,6 @@ import com.billwatch.repository.UsuarioRepository;
 import com.billwatch.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -58,8 +57,12 @@ public class UsuarioService {
         return new AuthResponse(jwtService.gerarToken(usuario.getEmail(), usuario.getNome()));
     }
 
-    public List<UsuarioResponse> listarUsuarios() {
-        return usuarioRepository.findAll(Sort.by("nome")).stream().map(UsuarioResponse::of).toList();
+    public List<UsuarioResponse> listarUsuarios(String email) {
+        Usuario logado = usuarioRepository.findByEmail(email).orElseThrow();
+        List<Usuario> visiveis = logado.getGrupo() == null
+                ? List.of(logado)
+                : usuarioRepository.findByGrupoIdOrderByNome(logado.getGrupo().getId());
+        return visiveis.stream().map(UsuarioResponse::of).toList();
     }
 
     public void esqueciSenha(String email) {

@@ -6,6 +6,13 @@ export interface Usuario {
   email: string;
 }
 
+export interface Grupo {
+  id: string;
+  nome: string;
+  codigoConvite: string;
+  membros: Usuario[];
+}
+
 export interface Boleto {
   id: string;
   descricao: string;

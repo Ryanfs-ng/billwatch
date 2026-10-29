@@ -41,6 +41,15 @@ public class Usuario {
     @Column
     private Instant resetTokenExpira;
 
+    @ManyToOne
+    @JoinColumn(name = "grupo_id")
+    private Grupo grupo;
+
+    public boolean podeVer(Usuario outro) {
+        return id.equals(outro.getId())
+                || (grupo != null && outro.getGrupo() != null && grupo.getId().equals(outro.getGrupo().getId()));
+    }
+
     @PrePersist
     void aoPersistir() {
         if (createdAt == null) {

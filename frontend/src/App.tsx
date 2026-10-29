@@ -15,6 +15,7 @@ import { RedefinirSenha } from "./pages/RedefinirSenha";
 import { Dashboard } from "./pages/Dashboard";
 import { Boletos } from "./pages/Boletos";
 import { Calendario } from "./pages/Calendario";
+import { Grupo } from "./pages/Grupo";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -31,6 +32,7 @@ const router = createBrowserRouter(
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/boletos" element={<Boletos />} />
           <Route path="/calendario" element={<Calendario />} />
+          <Route path="/grupo" element={<Grupo />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />

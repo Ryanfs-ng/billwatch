@@ -37,8 +37,8 @@ public class BoletoController {
     }
 
     @GetMapping
-    public List<BoletoResponse> listarTodosBoletos(){
-        return boletoService.listarTodosBoletos();
+    public List<BoletoResponse> listarTodosBoletos(Authentication auth){
+        return boletoService.listarTodosBoletos(auth.getName());
     }
 
    @PostMapping
@@ -48,29 +48,29 @@ public class BoletoController {
    }
 
    @PutMapping("/{id}")
-   public BoletoResponse editar(@PathVariable UUID id, @Valid @RequestBody BoletoRequest dados){
-        return boletoService.editarBoleto(id, dados);
+   public BoletoResponse editar(@PathVariable UUID id, @Valid @RequestBody BoletoRequest dados, Authentication auth){
+        return boletoService.editarBoleto(id, dados, auth.getName());
    }
 
    @PatchMapping("/{id}/pagar")
-    public BoletoResponse pagar(@PathVariable UUID id) {
-        return boletoService.pagarBoleto(id);
+    public BoletoResponse pagar(@PathVariable UUID id, Authentication auth) {
+        return boletoService.pagarBoleto(id, auth.getName());
    }
 
    @DeleteMapping("/{id}")
    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletar (@PathVariable UUID id) throws IOException {
-        boletoService.deletarBoleto(id);
+    public void deletar (@PathVariable UUID id, Authentication auth) throws IOException {
+        boletoService.deletarBoleto(id, auth.getName());
    }
 
    @PutMapping(value = "/{id}/anexos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public BoletoResponse anexar (@PathVariable UUID id, @RequestParam("arquivo")MultipartFile arquivo) throws IOException {
-        return boletoService.anexar(id, arquivo);
+    public BoletoResponse anexar (@PathVariable UUID id, @RequestParam("arquivo")MultipartFile arquivo, Authentication auth) throws IOException {
+        return boletoService.anexar(id, arquivo, auth.getName());
    }
 
    @GetMapping("/{id}/anexo")
-    public ResponseEntity<Resource> carregarAnexo(@PathVariable UUID id) {
-       Resource recurso = boletoService.carregarAnexo(id);
+    public ResponseEntity<Resource> carregarAnexo(@PathVariable UUID id, Authentication auth) {
+       Resource recurso = boletoService.carregarAnexo(id, auth.getName());
        MediaType tipo = MediaTypeFactory.getMediaType(recurso).orElse(MediaType.APPLICATION_OCTET_STREAM);
        return ResponseEntity.ok().contentType(tipo).body(recurso);
    }

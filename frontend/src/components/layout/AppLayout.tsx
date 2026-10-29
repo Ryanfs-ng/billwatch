@@ -9,6 +9,7 @@ import {
   LayoutGrid,
   LogOut,
   Menu,
+  Users,
   X,
 } from "lucide-react";
 import logo from "@/assets/logo.png";
@@ -21,6 +22,7 @@ const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutGrid },
   { to: "/boletos", label: "Boletos", icon: FileText },
   { to: "/calendario", label: "Calendário", icon: CalendarDays },
+  { to: "/grupo", label: "Grupo", icon: Users },
 ];
 
 const itemNav =

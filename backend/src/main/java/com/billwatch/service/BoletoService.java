@@ -58,9 +58,8 @@ public class BoletoService {
     }
 
     public BoletoResponse criar(BoletoRequest dados, String emailLogado){
-        Usuario responsavel = dados.responsavelId() != null
-                ? usuarioRepository.findById(dados.responsavelId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado"))
-                : usuarioRepository.findByEmail(emailLogado).orElseThrow();
+        Usuario logado = usuarioLogado(emailLogado);
+        Usuario responsavel = dados.responsavelId() != null ? buscarResponsavel(dados.responsavelId(), logado) : logado;
 
         return entidadeParaResponse(boletoRepository.save(Boleto.builder()
                 .descricao(dados.descricao())
@@ -75,25 +74,38 @@ public class BoletoService {
         return boletoRepository.findByResponsavelEmail(email).stream().map(this::entidadeParaResponse).toList();
     }
 
-    public List<BoletoResponse> listarTodosBoletos(){
-        return boletoRepository.findAll().stream().map(this::entidadeParaResponse).toList();
+    public List<BoletoResponse> listarTodosBoletos(String email){
+        Usuario logado = usuarioLogado(email);
+        List<Boleto> boletos = logado.getGrupo() == null
+                ? boletoRepository.findByResponsavelEmail(email)
+                : boletoRepository.findByResponsavelGrupoId(logado.getGrupo().getId());
+        return boletos.stream().map(this::entidadeParaResponse).toList();
     }
 
-    private Boleto buscar (UUID id){
-        return boletoRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Boleto não encontrado"));
+    private Usuario usuarioLogado(String email) {
+        return usuarioRepository.findByEmail(email).orElseThrow();
     }
 
-    private Usuario buscarResponsavel(UUID id){
-        return usuarioRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado"));
+    private Boleto buscar(UUID id, String email){
+        Usuario logado = usuarioLogado(email);
+        return boletoRepository.findById(id)
+                .filter(b -> logado.podeVer(b.getResponsavel()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Boleto não encontrado"));
     }
 
-    public BoletoResponse editarBoleto(UUID id, BoletoRequest dados) {
-        Boleto boleto = buscar(id);
+    private Usuario buscarResponsavel(UUID id, Usuario logado){
+        return usuarioRepository.findById(id)
+                .filter(logado::podeVer)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado"));
+    }
+
+    public BoletoResponse editarBoleto(UUID id, BoletoRequest dados, String email) {
+        Boleto boleto = buscar(id, email);
         boleto.setDescricao(dados.descricao());
         boleto.setDataVencimento(dados.dataVencimento());
         boleto.setValor(dados.valor());
         if (dados.responsavelId() != null) {
-            boleto.setResponsavel(buscarResponsavel(dados.responsavelId()));
+            boleto.setResponsavel(buscarResponsavel(dados.responsavelId(), usuarioLogado(email)));
         }
         return entidadeParaResponse(boletoRepository.save(boleto));
     }
@@ -119,8 +131,8 @@ public class BoletoService {
         return new DashboardResponse(atrasados, aVencer, emAberto, pagoNoMes);
     }
 
-    public BoletoResponse pagarBoleto (UUID id) {
-        Boleto boleto = buscar(id);
+    public BoletoResponse pagarBoleto (UUID id, String email) {
+        Boleto boleto = buscar(id, email);
         if (boleto.getDataPagamento() != null){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Boleto já está pago");
         }
@@ -128,16 +140,16 @@ public class BoletoService {
             return entidadeParaResponse(boletoRepository.save(boleto));
     }
 
-    public void deletarBoleto (UUID id) throws IOException {
-        Boleto boleto = buscar(id);
+    public void deletarBoleto (UUID id, String email) throws IOException {
+        Boleto boleto = buscar(id, email);
         boletoRepository.deleteById(id);
         if (boleto.getAnexo() != null){
             Files.deleteIfExists(Path.of(diretorioUploads).resolve(boleto.getAnexo()));
         }
     }
 
-    public BoletoResponse anexar(UUID id, MultipartFile arquivo) throws IOException {
-        Boleto boleto = buscar(id);
+    public BoletoResponse anexar(UUID id, MultipartFile arquivo, String email) throws IOException {
+        Boleto boleto = buscar(id, email);
         String extensao = TIPOS_ACEITOS.get(arquivo.getContentType());
         if (extensao == null){
             throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Envie PDF, JPG ou PNG");
@@ -153,8 +165,8 @@ public class BoletoService {
         return entidadeParaResponse(boletoRepository.save(boleto));
     }
 
-    public Resource carregarAnexo(UUID id){
-        String nome = buscar(id).getAnexo();
+    public Resource carregarAnexo(UUID id, String email){
+        String nome = buscar(id, email).getAnexo();
         Resource recurso = nome == null ? null : new FileSystemResource(Path.of(diretorioUploads).resolve(nome));
         if (recurso == null || !recurso.exists()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Boleto sem anexo");
