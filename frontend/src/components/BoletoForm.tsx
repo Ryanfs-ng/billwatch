@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { anexarArquivo, criarBoleto, editarBoleto } from "@/api/boletos";
+import { listarUsuarios } from "@/api/usuarios";
 import { Modal } from "@/components/Modal";
 import { preferePoucoMovimento, SucessoAnimado } from "@/components/SucessoAnimado";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { inputClass, mensagemErro } from "@/lib/utils";
 import type { Boleto } from "@/types";
@@ -20,6 +22,9 @@ const label = "mb-1.5 block text-[13px] font-semibold";
 export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProps) {
   const queryClient = useQueryClient();
   const [sucesso, setSucesso] = useState<string | null>(null);
+  const { email } = useAuth();
+  const usuarios = useQuery({ queryKey: ["usuarios"], queryFn: listarUsuarios, enabled: aberto });
+  const responsavelPadrao = boleto?.responsavelId ?? usuarios.data?.find((u) => u.email === email)?.id;
 
   function concluir() {
     setSucesso(null);
@@ -32,6 +37,7 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
         descricao: String(form.get("descricao")).trim(),
         valor: Number(form.get("valor")),
         dataVencimento: String(form.get("dataVencimento")),
+        responsavelId: String(form.get("responsavelId") ?? "") || undefined,
       };
       const salvo = boleto ? await editarBoleto(boleto.id, payload) : await criarBoleto(payload);
 
@@ -75,7 +81,6 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
       aberto={aberto}
       onFechar={fechar}
       titulo={boleto ? "Editar boleto" : "Novo boleto"}
-      descricao={boleto ? undefined : "O boleto será atribuído a você."}
     >
       {sucesso ? (
         <SucessoAnimado mensagem={sucesso} onConcluir={concluir} />
@@ -121,6 +126,24 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
                 className={inputClass}
               />
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="responsavelId" className={label}>Responsável</label>
+            {usuarios.data ? (
+              // Só monta com a lista carregada: o defaultValue de um <select> não é reaplicado depois.
+              <select id="responsavelId" name="responsavelId" defaultValue={responsavelPadrao} className={inputClass}>
+                {usuarios.data.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.email === email ? `${u.nome} (você)` : u.nome}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <select id="responsavelId" disabled className={inputClass}>
+                <option>{usuarios.isError ? "Não foi possível carregar (fica com você)" : "Carregando…"}</option>
+              </select>
+            )}
           </div>
 
           <div>

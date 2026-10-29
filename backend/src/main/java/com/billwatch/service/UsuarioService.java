@@ -4,10 +4,12 @@ import com.billwatch.domain.Usuario;
 import com.billwatch.dto.AuthResponse;
 import com.billwatch.dto.LoginRequest;
 import com.billwatch.dto.RegistrarRequest;
+import com.billwatch.dto.UsuarioResponse;
 import com.billwatch.repository.UsuarioRepository;
 import com.billwatch.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +22,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -53,6 +56,10 @@ public class UsuarioService {
                         u.getSenha()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas"));
         return new AuthResponse(jwtService.gerarToken(usuario.getEmail(), usuario.getNome()));
+    }
+
+    public List<UsuarioResponse> listarUsuarios() {
+        return usuarioRepository.findAll(Sort.by("nome")).stream().map(UsuarioResponse::of).toList();
     }
 
     public void esqueciSenha(String email) {

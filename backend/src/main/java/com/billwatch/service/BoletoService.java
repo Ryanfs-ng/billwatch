@@ -8,7 +8,6 @@ import com.billwatch.dto.BoletoResponse;
 import com.billwatch.dto.DashboardResponse;
 import com.billwatch.repository.BoletoRepository;
 import com.billwatch.repository.UsuarioRepository;
-import jakarta.mail.Multipart;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
@@ -81,7 +80,7 @@ public class BoletoService {
     }
 
     private Boleto buscar (UUID id){
-        return boletoRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+        return boletoRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Boleto não encontrado"));
     }
 
     private Usuario buscarResponsavel(UUID id){

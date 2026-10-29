@@ -1,10 +1,10 @@
 export type StatusBoleto = "PAGO" | "ATRASADO" | "A_VENCER" | "PENDENTE";
 
+// Espelha UsuarioResponse do backend.
 export interface Usuario {
   id: string;
   nome: string;
   email: string;
-  createdAt: string;
 }
 
 export interface Boleto {
