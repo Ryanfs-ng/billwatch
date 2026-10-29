@@ -32,7 +32,7 @@ function Formulario({ emailInicial, onFechar }: Omit<EsqueciSenhaModalProps, "ab
   const mutation = useMutation({
     mutationFn: solicitarRedefinicaoSenha,
     onSuccess: () => {
-      toast.success("Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha.");
+      toast.success("Enviamos o link de redefinição de senha para o seu e-mail.");
       onFechar();
     },
     onError: (erro) => toast.error(mensagemErro(erro)),
@@ -52,6 +52,8 @@ function Formulario({ emailInicial, onFechar }: Omit<EsqueciSenhaModalProps, "ab
         <Input
           id="email-recuperacao"
           type="email"
+          pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+          title="Informe um e-mail válido, como nome@exemplo.com"
           autoComplete="email"
           required
           autoFocus

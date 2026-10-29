@@ -1,6 +1,5 @@
 export type StatusBoleto = "PAGO" | "ATRASADO" | "A_VENCER" | "PENDENTE";
 
-// Espelha UsuarioResponse do backend.
 export interface Usuario {
   id: string;
   nome: string;

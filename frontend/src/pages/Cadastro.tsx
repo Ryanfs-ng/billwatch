@@ -70,6 +70,8 @@ export function Cadastro() {
           <Input
             id="email"
             type="email"
+            pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
+            title="Informe um e-mail válido, como nome@exemplo.com"
             autoComplete="email"
             required
             className="h-12 border-border-strong"

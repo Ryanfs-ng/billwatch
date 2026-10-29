@@ -131,7 +131,6 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
           <div>
             <label htmlFor="responsavelId" className={label}>Responsável</label>
             {usuarios.data ? (
-              // Só monta com a lista carregada: o defaultValue de um <select> não é reaplicado depois.
               <select id="responsavelId" name="responsavelId" defaultValue={responsavelPadrao} className={inputClass}>
                 {usuarios.data.map((u) => (
                   <option key={u.id} value={u.id}>

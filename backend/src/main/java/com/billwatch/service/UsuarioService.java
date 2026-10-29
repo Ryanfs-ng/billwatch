@@ -69,7 +69,7 @@ public class UsuarioService {
             usuario.setResetTokenExpira(Instant.now().plus(30, ChronoUnit.MINUTES));
             usuarioRepository.save(usuario);
             emailService.enviar(email, "Redefinição de senha - Billwatch", "Clique para redefinir sua senha: " + linkResetSenha + "?token=" + token
-                                                    + "\nO link expira em 30 minutos.");
+                    + "\nO link expira em 30 minutos.");
         });
     }
 

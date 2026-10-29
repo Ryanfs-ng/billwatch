@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 
 public record RegistrarRequest(
         @NotBlank String nome,
-        @NotBlank @Email String email,
+        @NotBlank @Email(regexp = ".+@.+\\..+") String email,
         @NotBlank @Size(min = 8) String senha
 ) {
 }

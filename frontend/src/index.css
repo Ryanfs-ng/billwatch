@@ -179,6 +179,7 @@ dialog.modal {
   border: 0;
   background: transparent;
   overflow-y: auto;
+  place-items: center;
   opacity: 0;
   transition:
     opacity 120ms ease-in,
@@ -187,7 +188,6 @@ dialog.modal {
 }
 dialog.modal[open] {
   display: grid;
-  place-items: center;
   opacity: 1;
   transition:
     opacity 180ms ease-out,
@@ -248,6 +248,11 @@ dialog.modal[open]::backdrop {
   .modal-painel {
     transition-duration: 0s !important;
   }
+}
+
+/* O Modal move o #toaster para dentro do <dialog> aberto; absolute evita que ele vire uma linha da grade e descentralize o painel. */
+#toaster {
+  position: absolute;
 }
 
 :root [data-sonner-toaster][data-sonner-theme] {
