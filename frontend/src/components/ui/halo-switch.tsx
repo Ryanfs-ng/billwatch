@@ -29,7 +29,6 @@ function mergeRefs<T>(...refs: (Ref<T> | undefined)[]) {
 }
 
 export interface HaloSwitchProps extends SwitchPrimitive.Root.Props {
-  /** Brilho azul suave por baixo do switch quando ligado. */
   translucent?: boolean
   size?: "sm" | "default"
 }

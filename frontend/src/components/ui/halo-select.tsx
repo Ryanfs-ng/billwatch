@@ -409,7 +409,6 @@ export function HaloSelectTrigger({
   const ringActive = isFocused || open
 
   return (
-    <div className="relative w-fit max-w-full">
       <SelectPrimitive.Trigger
         aria-busy={isLoading || props["aria-busy"]}
         className={cn(
@@ -440,7 +439,6 @@ export function HaloSelectTrigger({
       >
         {children}
       </SelectPrimitive.Trigger>
-    </div>
   )
 }
 

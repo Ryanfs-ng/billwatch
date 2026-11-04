@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { PortalDoModal } from "@/lib/portal-modal";
 
 interface ModalProps {
   aberto: boolean;
@@ -18,6 +19,7 @@ function moverToasts(destino: HTMLElement | null | undefined) {
 export function Modal({ aberto, onFechar, titulo, descricao, children }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const timerSaida = useRef<number>(undefined);
+  const pressionouFora = useRef(false);
   const [mostrarConteudo, setMostrarConteudo] = useState(aberto);
   if (aberto && !mostrarConteudo) setMostrarConteudo(true);
   /* oxlint-disable react/refs */
@@ -51,7 +53,8 @@ export function Modal({ aberto, onFechar, titulo, descricao, children }: ModalPr
     <dialog
       ref={ref}
       onClose={aoFechar}
-      onClick={(e) => e.target === ref.current && ref.current.close()}
+      onPointerDown={(e) => (pressionouFora.current = e.target === ref.current)}
+      onClick={(e) => pressionouFora.current && e.target === ref.current && ref.current.close()}
       aria-labelledby="modal-titulo"
       className="modal"
     >
@@ -61,7 +64,9 @@ export function Modal({ aberto, onFechar, titulo, descricao, children }: ModalPr
             {conteudo.titulo}
           </h2>
           {conteudo.descricao && <p className="mt-1 text-sm text-ink-600">{conteudo.descricao}</p>}
-          <div className="mt-5">{conteudo.children}</div>
+          <div className="mt-5">
+            <PortalDoModal.Provider value={ref}>{conteudo.children}</PortalDoModal.Provider>
+          </div>
         </div>
       )}
     </dialog>

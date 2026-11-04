@@ -208,6 +208,9 @@ dialog.modal {
     overlay 120ms allow-discrete,
     display 120ms allow-discrete;
 }
+dialog.modal > * {
+  grid-area: 1 / 1;
+}
 dialog.modal[open] {
   display: grid;
   opacity: 1;

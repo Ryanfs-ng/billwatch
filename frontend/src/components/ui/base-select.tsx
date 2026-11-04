@@ -5,6 +5,7 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { Check, ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { PortalDoModal } from "@/lib/portal-modal"
 
 const Select = SelectPrimitive.Root
 
@@ -74,7 +75,7 @@ function SelectContent({
     "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
   >) {
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal container={React.useContext(PortalDoModal)}>
       <SelectPrimitive.Positioner
         side={side}
         sideOffset={sideOffset}

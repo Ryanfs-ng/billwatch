@@ -1,15 +1,29 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+import { CalendarDays } from "lucide-react";
+import { ptBR } from "react-day-picker/locale";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { anexarArquivo, criarBoleto, editarBoleto } from "@/api/boletos";
 import { listarUsuarios } from "@/api/usuarios";
 import { Modal } from "@/components/Modal";
 import { preferePoucoMovimento, SucessoAnimado } from "@/components/SucessoAnimado";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { HaloDropzone } from "@/components/ui/halo-dropzone";
+import {
+  HaloSelect,
+  HaloSelectContent,
+  HaloSelectItem,
+  HaloSelectTrailingIndicator,
+  HaloSelectTrigger,
+  HaloSelectValue,
+  type PolishedSelectItem,
+} from "@/components/ui/halo-select";
+import { HaloSwitch } from "@/components/ui/halo-switch";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { inputClass, mensagemErro } from "@/lib/utils";
-import type { Boleto } from "@/types";
+import { cn, formatarData, inputClass, mensagemErro } from "@/lib/utils";
+import type { Boleto, Usuario } from "@/types";
 
 interface BoletoFormProps {
   aberto: boolean;
@@ -94,8 +108,7 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
               id="descricao"
               name="descricao"
               required
-              autoFocus
-              defaultValue={boleto?.descricao}
+                defaultValue={boleto?.descricao}
               placeholder="Ex.: Conta de luz"
               className={inputClass}
             />
@@ -119,27 +132,14 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
             </div>
             <div>
               <label htmlFor="dataVencimento" className={label}>Vencimento</label>
-              <input
-                id="dataVencimento"
-                name="dataVencimento"
-                type="date"
-                required
-                defaultValue={boleto?.dataVencimento}
-                className={inputClass}
-              />
+              <CampoData id="dataVencimento" name="dataVencimento" inicial={boleto?.dataVencimento} />
             </div>
           </div>
 
           <div>
             <label htmlFor="responsavelId" className={label}>Responsável</label>
             {usuarios.data ? (
-              <select id="responsavelId" name="responsavelId" defaultValue={responsavelPadrao} className={inputClass}>
-                {usuarios.data.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.email === email ? `${u.nome} (você)` : u.nome}
-                  </option>
-                ))}
-              </select>
+              <CampoResponsavel usuarios={usuarios.data} emailLogado={email} inicial={responsavelPadrao} />
             ) : (
               <select id="responsavelId" disabled className={inputClass}>
                 <option>{usuarios.isError ? "Não foi possível carregar (fica com você)" : "Carregando…"}</option>
@@ -147,20 +147,21 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
             )}
           </div>
 
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border-strong bg-card p-3 transition-colors hover:border-brand-200 has-checked:border-brand-200 has-checked:bg-brand-50 has-focus-visible:ring-3 has-focus-visible:ring-ring/40">
-            <input
-              type="checkbox"
-              name="recorrente"
-              defaultChecked={boleto?.recorrente}
-              className="mt-0.5 size-4 shrink-0 cursor-pointer accent-brand-500 outline-none"
-            />
-            <span>
-              <span className="block text-sm font-semibold">Repetir todo mês</span>
-              <span className="block text-xs text-ink-600">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-border-strong bg-card p-3">
+            <div>
+              <span id="recorrente-titulo" className="block text-sm font-semibold">Repetir todo mês</span>
+              <span id="recorrente-texto" className="block text-xs text-ink-600">
                 O boleto do mês seguinte é criado automaticamente, com a mesma descrição, valor e responsável.
               </span>
-            </span>
-          </label>
+            </div>
+            <HaloSwitch
+              name="recorrente"
+              value="on"
+              defaultChecked={boleto?.recorrente}
+              aria-labelledby="recorrente-titulo"
+              aria-describedby="recorrente-texto"
+            />
+          </div>
 
           <div>
             <label htmlFor="arquivo" className={label}>
@@ -175,7 +176,6 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
             />
           </div>
 
-
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={fechar}>
               Cancelar
@@ -187,5 +187,107 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
         </form>
       )}
     </Modal>
+  );
+}
+
+function isoParaData(iso: string) {
+  const [ano, mes, dia] = iso.split("-").map(Number);
+  return new Date(ano, mes - 1, dia);
+}
+
+function diaParaFocar(calendario: HTMLElement | null) {
+  return (
+    calendario?.querySelector<HTMLElement>("[data-selected=true] button") ??
+    calendario?.querySelector<HTMLElement>("[data-today=true] button") ??
+    true
+  );
+}
+
+function CampoData({ id, name, inicial }: { id: string; name: string; inicial?: string }) {
+  const [valor, setValor] = useState(inicial ?? "");
+  const [aberto, setAberto] = useState(false);
+  const calendario = useRef<HTMLDivElement>(null);
+  const selecionada = valor ? isoParaData(valor) : undefined;
+
+  return (
+    <div className="relative">
+      <Popover open={aberto} onOpenChange={setAberto}>
+        <PopoverTrigger
+          id={id}
+          className={cn(inputClass, "flex items-center gap-2 text-left", !valor && "text-ink-400")}
+        >
+          <CalendarDays aria-hidden className="size-4 shrink-0 text-ink-600" />
+          {valor ? formatarData(valor) : "Selecione a data"}
+        </PopoverTrigger>
+        <PopoverContent align="start" initialFocus={() => diaParaFocar(calendario.current)} className="w-auto rounded-2xl border border-border-strong p-1 ring-0">
+          <div ref={calendario}>
+          <Calendar
+            mode="single"
+            locale={ptBR}
+            selected={selecionada}
+            defaultMonth={selecionada}
+            autoFocus
+            onSelect={(data) => {
+              if (data) setValor(data.toLocaleDateString("sv-SE"));
+              setAberto(false);
+            }}
+            className="[--cell-size:--spacing(9)]"
+            classNames={{
+              today: "rounded-(--cell-radius) font-bold text-brand-700",
+              caption_label: "text-sm font-semibold capitalize",
+            }}
+          />
+          </div>
+        </PopoverContent>
+      </Popover>
+      <input
+        name={name}
+        value={valor}
+        onChange={() => {}}
+        required
+        tabIndex={-1}
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px opacity-0"
+      />
+    </div>
+  );
+}
+
+interface CampoResponsavelProps {
+  usuarios: Usuario[];
+  emailLogado: string | null;
+  inicial?: string;
+}
+
+function CampoResponsavel({ usuarios, emailLogado, inicial }: CampoResponsavelProps) {
+  const opcoes: PolishedSelectItem[] = usuarios.map((u) => ({
+    value: u.id,
+    label: u.email === emailLogado ? `${u.nome} (você)` : u.nome,
+  }));
+  const [selecionado, setSelecionado] = useState(() => opcoes.find((o) => o.value === inicial) ?? null);
+
+  return (
+    <>
+      <HaloSelect
+        className="w-full"
+        items={opcoes}
+        isItemEqualToValue={(a, b) => (a as PolishedSelectItem).value === (b as PolishedSelectItem).value}
+        value={selecionado}
+        onValueChange={(opcao) => setSelecionado(opcao as PolishedSelectItem | null)}
+      >
+        <HaloSelectTrigger id="responsavelId" className="w-full max-w-none">
+          <HaloSelectValue />
+          <HaloSelectTrailingIndicator />
+        </HaloSelectTrigger>
+        <HaloSelectContent>
+          {opcoes.map((opcao, i) => (
+            <HaloSelectItem index={i} key={opcao.value} label={opcao.label} value={opcao}>
+              {opcao.label}
+            </HaloSelectItem>
+          ))}
+        </HaloSelectContent>
+      </HaloSelect>
+      <input type="hidden" name="responsavelId" value={selecionado?.value ?? ""} />
+    </>
   );
 }
