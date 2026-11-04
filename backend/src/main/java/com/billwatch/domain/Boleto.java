@@ -47,6 +47,16 @@ public class Boleto {
 
     private LocalDate notificadoEm;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean recorrente = false;
+
+    private Integer diaRecorrencia;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean proximoGerado = false;
+
     @PrePersist
     void aoPersistir() {
         if (dataAnexado == null) {

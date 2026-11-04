@@ -31,6 +31,7 @@ public class BoletoService {
     private final BoletoRepository boletoRepository;
     private final UsuarioRepository usuarioRepository;
     private final ArquivoService arquivoService;
+    private final RecorrenciaService recorrenciaService;
 
     @Value("${boletos.dias-aviso}")
     private int diasAviso;
@@ -56,13 +57,19 @@ public class BoletoService {
         Usuario logado = usuarioLogado(emailLogado);
         Usuario responsavel = dados.responsavelId() != null ? buscarResponsavel(dados.responsavelId(), logado) : logado;
 
-        return entidadeParaResponse(boletoRepository.save(Boleto.builder()
+        boolean recorrente = Boolean.TRUE.equals(dados.recorrente());
+        Boleto salvo = boletoRepository.save(Boleto.builder()
                 .descricao(dados.descricao())
                 .valor(dados.valor())
                 .dataVencimento(dados.dataVencimento())
                 .responsavel(responsavel)
-                .build()));
-
+                .recorrente(recorrente)
+                .diaRecorrencia(recorrente ? dados.dataVencimento().getDayOfMonth() : null)
+                .build());
+        if (recorrente) {
+            recorrenciaService.gerarProximos(LocalDate.now());
+        }
+        return entidadeParaResponse(salvo);
     }
 
     public List<BoletoResponse> listarMeusBoletos(String email) {
@@ -97,15 +104,25 @@ public class BoletoService {
     public BoletoResponse editarBoleto(UUID id, BoletoRequest dados, String email) {
         Boleto boleto = buscar(id, email);
         boleto.setDescricao(dados.descricao());
-        if (!dados.dataVencimento().equals(boleto.getDataVencimento())) {
+        boolean mudouVencimento = !dados.dataVencimento().equals(boleto.getDataVencimento());
+        if (mudouVencimento) {
             boleto.setNotificadoEm(null);
         }
+        boolean recorrente = Boolean.TRUE.equals(dados.recorrente());
+        if (recorrente && (!boleto.isRecorrente() || mudouVencimento)) {
+            boleto.setDiaRecorrencia(dados.dataVencimento().getDayOfMonth());
+        }
+        boleto.setRecorrente(recorrente);
         boleto.setDataVencimento(dados.dataVencimento());
         boleto.setValor(dados.valor());
         if (dados.responsavelId() != null) {
             boleto.setResponsavel(buscarResponsavel(dados.responsavelId(), usuarioLogado(email)));
         }
-        return entidadeParaResponse(boletoRepository.save(boleto));
+        Boleto salvo = boletoRepository.save(boleto);
+        if (recorrente) {
+            recorrenciaService.gerarProximos(LocalDate.now());
+        }
+        return entidadeParaResponse(salvo);
     }
 
     public DashboardResponse dashboard(String email) {

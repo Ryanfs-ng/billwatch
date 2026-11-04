@@ -18,7 +18,8 @@ public record BoletoResponse(
         String anexo,
         UUID responsavelId,
         String responsavelNome,
-        StatusBoleto status
+        StatusBoleto status,
+        boolean recorrente
 ) {
     public static BoletoResponse of(Boleto boleto, StatusBoleto status) {
         return new BoletoResponse(
@@ -31,7 +32,8 @@ public record BoletoResponse(
                 boleto.getAnexo(),
                 boleto.getResponsavel().getId(),
                 boleto.getResponsavel().getNome(),
-                status
+                status,
+                boleto.isRecorrente()
         );
     }
 }

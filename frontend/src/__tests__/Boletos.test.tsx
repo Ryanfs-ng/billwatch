@@ -17,6 +17,7 @@ const boleto = (descricao: string, dataVencimento: string, status: Boleto["statu
   responsavelId: "u1",
   responsavelNome: "Ryan",
   status,
+  recorrente: false,
 });
 
 const lista = [

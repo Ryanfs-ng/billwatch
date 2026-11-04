@@ -1,0 +1,4 @@
+ALTER TABLE boletos
+    ADD COLUMN recorrente      BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN dia_recorrencia INTEGER,
+    ADD COLUMN proximo_gerado  BOOLEAN NOT NULL DEFAULT FALSE;

@@ -2,7 +2,7 @@ import { useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Check, CircleCheck, FileText, Paperclip, Pencil, Plus, Trash2, Users } from "lucide-react";
+import { Check, CircleCheck, FileText, Paperclip, Pencil, Plus, Repeat, Search, Trash2, Users } from "lucide-react";
 import { anexarArquivo, baixarAnexo, excluirBoleto, marcarComoPago } from "@/api/boletos";
 import { AbasResponsavel, consultaDaAba, useAba } from "@/components/AbasResponsavel";
 import { BoletoForm } from "@/components/BoletoForm";
@@ -22,7 +22,7 @@ import {
   type PolishedSelectItem,
 } from "@/components/ui/halo-select";
 import { consultaDoGrupo } from "@/pages/Grupo";
-import { cn, formatarData, formatarMoeda, hojeISO, inputClass, mensagemErro } from "@/lib/utils";
+import { cn, formatarData, formatarMoeda, hojeISO, mensagemErro } from "@/lib/utils";
 import type { Boleto, StatusBoleto } from "@/types";
 
 export type Periodo = "qualquer" | "7" | "30" | "mes";
@@ -200,14 +200,17 @@ export function Boletos() {
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end">
         <div className="lg:min-w-56 lg:flex-1">
           <label htmlFor="busca" className="mb-1.5 block text-[13px] font-semibold">Buscar boleto</label>
-          <input
-            id="busca"
-            type="search"
-            placeholder="Descrição"
-            value={filtros.busca}
-            onChange={(e) => setFiltros({ ...filtros, busca: e.target.value })}
-            className={inputClass}
-          />
+          <div className="relative">
+            <Search aria-hidden className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-ink-600" />
+            <input
+              id="busca"
+              type="search"
+              placeholder="Descrição"
+              value={filtros.busca}
+              onChange={(e) => setFiltros({ ...filtros, busca: e.target.value })}
+              className="h-[46px] w-full rounded-full border border-border-strong bg-card pr-4 pl-10 text-sm font-semibold text-foreground shadow-xs outline-none transition-colors placeholder:font-medium placeholder:text-ink-400 fine-hover:hover:border-brand-200 focus-visible:border-brand-200 focus-visible:ring-3 focus-visible:ring-ring/40"
+            />
+          </div>
         </div>
         <div className="lg:shrink-0">
           <label htmlFor="status" className="mb-1.5 block text-[13px] font-semibold">Status</label>
@@ -298,7 +301,10 @@ export function Boletos() {
                 <tbody>
                   {visiveis.map((b) => (
                     <tr key={b.id} className="border-b transition-colors last:border-0 hover:bg-surface-hover">
-                      <td className="px-5 py-5 font-medium">{b.descricao}</td>
+                      <td className="px-5 py-5 font-medium">
+                        {b.descricao}
+                        {b.recorrente && <MarcaRecorrente />}
+                      </td>
                       <td className="px-5 py-5 text-ink-600">{b.responsavelNome}</td>
                       <td className="px-5 py-5 font-mono font-medium tabular-nums">{formatarMoeda(b.valor)}</td>
                       <td className="px-5 py-5 tabular-nums">{formatarData(b.dataVencimento)}</td>
@@ -314,7 +320,10 @@ export function Boletos() {
               {visiveis.map((b) => (
                 <li key={b.id} className="rounded-lg border bg-card p-4 shadow-xs">
                   <div className="flex items-start justify-between gap-3">
-                    <p className="font-semibold">{b.descricao}</p>
+                    <p className="font-semibold">
+                      {b.descricao}
+                      {b.recorrente && <MarcaRecorrente />}
+                    </p>
                     <p className="shrink-0 font-mono font-bold tabular-nums">{formatarMoeda(b.valor)}</p>
                   </div>
                   <p className="mt-1 text-sm text-ink-600">
@@ -401,6 +410,15 @@ function CheckPago() {
   return (
     <span aria-hidden className="grid size-[19px] place-items-center rounded-full bg-check-sucesso text-white">
       <Check className="size-3!" strokeWidth={3.5} />
+    </span>
+  );
+}
+
+function MarcaRecorrente() {
+  return (
+    <span title="Repete todo mês" className="ml-1.5 inline-flex align-[-2px] text-ink-400">
+      <Repeat aria-hidden className="size-3.5" />
+      <span className="sr-only">(repete todo mês)</span>
     </span>
   );
 }

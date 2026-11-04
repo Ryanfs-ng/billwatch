@@ -39,6 +39,7 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
         valor: Number(form.get("valor")),
         dataVencimento: String(form.get("dataVencimento")),
         responsavelId: String(form.get("responsavelId") ?? "") || undefined,
+        recorrente: form.get("recorrente") === "on",
       };
       const salvo = boleto ? await editarBoleto(boleto.id, payload) : await criarBoleto(payload);
 
@@ -145,6 +146,21 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
               </select>
             )}
           </div>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border-strong bg-card p-3 transition-colors hover:border-brand-200 has-checked:border-brand-200 has-checked:bg-brand-50 has-focus-visible:ring-3 has-focus-visible:ring-ring/40">
+            <input
+              type="checkbox"
+              name="recorrente"
+              defaultChecked={boleto?.recorrente}
+              className="mt-0.5 size-4 shrink-0 cursor-pointer accent-brand-500 outline-none"
+            />
+            <span>
+              <span className="block text-sm font-semibold">Repetir todo mês</span>
+              <span className="block text-xs text-ink-600">
+                O boleto do mês seguinte é criado automaticamente, com a mesma descrição, valor e responsável.
+              </span>
+            </span>
+          </label>
 
           <div>
             <label htmlFor="arquivo" className={label}>

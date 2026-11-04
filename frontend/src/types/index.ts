@@ -33,6 +33,7 @@ export interface Boleto {
   responsavelId: string;
   responsavelNome: string;
   status: StatusBoleto;
+  recorrente: boolean;
 }
 
 export interface BoletoPayload {
@@ -40,6 +41,7 @@ export interface BoletoPayload {
   valor: number;
   dataVencimento: string;
   responsavelId?: string;
+  recorrente?: boolean;
 }
 
 export interface DashboardAgregados {
