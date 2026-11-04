@@ -30,6 +30,19 @@ docker compose up --build
 - Backend: http://localhost:8080
 - Mailpit (visualização de e-mails): http://localhost:8025
 
+## Produção atrás de proxy
+
+O rate limit (`@LimiteTentativas`) separa as tentativas por IP. Atrás de um proxy reverso ou balanceador, o backend enxerga o IP do proxy para todo mundo, e o limite vira global: poucas tentativas de qualquer pessoa bloqueiam o login de todos.
+
+Para corrigir, defina `FORWARD_HEADERS_STRATEGY=native`. O Tomcat passa a usar o IP do cabeçalho `X-Forwarded-For`, mas só quando a requisição chega de um proxy da rede privada (10.x, 172.16–31.x, 192.168.x, 127.x); de qualquer outro endereço o cabeçalho é ignorado.
+
+Ligue apenas quando:
+
+- existe um proxy na frente que preenche o `X-Forwarded-For`;
+- a porta do backend **não** está exposta diretamente para os clientes.
+
+Com o backend exposto (como no `docker-compose.yml` local, que publica a porta 8080), um cliente poderia enviar o próprio `X-Forwarded-For` e ganhar um IP novo a cada requisição, burlando o limite. Se o proxy não estiver numa rede privada, informe os IPs dele em `SERVER_TOMCAT_REMOTEIP_INTERNALPROXIES` (expressão regular).
+
 ## Desenvolvimento
 
 Backend:

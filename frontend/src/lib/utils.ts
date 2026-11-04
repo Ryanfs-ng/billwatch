@@ -6,6 +6,19 @@ const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL
 
 export const formatarMoeda = (valor: number) => moeda.format(valor);
 
+const moedaCompacta = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  notation: "compact",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 1,
+});
+
+const moedaInteira = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+
+export const formatarMoedaCompacta = (valor: number) =>
+  Math.abs(valor) < 1000 ? moedaInteira.format(valor) : moedaCompacta.format(valor);
+
 export const formatarData = (iso: string) => iso.split("-").reverse().join("/");
 
 export function hojeISO(dias = 0): string {

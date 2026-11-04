@@ -26,6 +26,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-billwatch}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
       JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
+      FORWARD_HEADERS_STRATEGY: ${FORWARD_HEADERS_STRATEGY:-none}
     volumes:
       - ./uploads:/app/uploads
     ports:

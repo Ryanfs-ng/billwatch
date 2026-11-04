@@ -31,6 +31,9 @@
   --pendente: #5b6472;
   --pendente-bg: #eef1f4;
   --check-sucesso: #23b26d;
+  --grafico-pago: #157f4b;
+  --grafico-aberto: #e59a0b;
+  --grafico-atrasado: #b42318;
 
   --bw-shadow-xs: rgba(0, 0, 0, 0.06) 0 0 6px 0;
   --bw-shadow-sm: rgba(0, 0, 0, 0.08) 0 0 10px 0;
@@ -85,6 +88,10 @@
   --bw-shadow-sm: rgba(0, 0, 0, 0.45) 0 0 10px 0;
   --bw-shadow-md: rgba(0, 0, 0, 0.55) 0 0 10px 0;
 
+  --grafico-pago: #2fa06a;
+  --grafico-aberto: #c8800d;
+  --grafico-atrasado: #c2272d;
+
   color-scheme: dark;
 }
 
@@ -116,6 +123,9 @@
   --color-pendente: var(--pendente);
   --color-pendente-bg: var(--pendente-bg);
   --color-check-sucesso: var(--check-sucesso);
+  --color-grafico-pago: var(--grafico-pago);
+  --color-grafico-aberto: var(--grafico-aberto);
+  --color-grafico-atrasado: var(--grafico-atrasado);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -4,7 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import { CircleCheck, Clock, FileText, Plus, TriangleAlert, type LucideIcon } from "lucide-react";
 import { buscarDashboard, listarMeusBoletos } from "@/api/boletos";
 import { BoletoForm } from "@/components/BoletoForm";
-import { BarrasMensais, Sparkline } from "@/components/Graficos";
+import {
+  BarrasEmpilhadas,
+  LegendaSituacao,
+  Sparkline,
+  TabelaMensal,
+  totalDoMes,
+  type ResumoMes,
+  type Situacao,
+} from "@/components/Graficos";
 import { StatusDot } from "@/components/StatusDot";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -36,12 +44,43 @@ export function porMes(
   return lista.map((m) => boletos.filter((b) => mes(b)?.slice(0, 7) === m).reduce((t, b) => t + medida(b), 0));
 }
 
+const situacao = (b: Boleto): Situacao =>
+  b.status === "PAGO" ? "pago" : b.status === "ATRASADO" ? "atrasado" : "emAberto";
+
+export function resumoPorMes(boletos: Boleto[], lista: string[]): ResumoMes[] {
+  return lista.map((mes, i) => {
+    const valores = { pago: 0, emAberto: 0, atrasado: 0 };
+    const quantidades = { pago: 0, emAberto: 0, atrasado: 0 };
+    for (const b of boletos) {
+      if (b.dataVencimento.slice(0, 7) !== mes) continue;
+      valores[situacao(b)] += b.valor;
+      quantidades[situacao(b)] += 1;
+    }
+    const data = new Date(`${mes}-15T12:00`);
+    return {
+      mes,
+      rotulo: data.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
+      rotuloLongo: data.toLocaleDateString("pt-BR", { month: "long", year: "numeric" }),
+      atual: i === lista.length - 1,
+      valores,
+      quantidades,
+    };
+  });
+}
+
+export function variacao(atual: number, anterior: number): number | null {
+  return anterior > 0 ? (atual - anterior) / anterior : null;
+}
+
+const percentual = new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 0 });
+
 const vencimento = (b: Boleto) => b.dataVencimento;
 const valor = (b: Boleto) => b.valor;
 
 export function Dashboard() {
   const { nome } = useAuth();
   const [formAberto, setFormAberto] = useState(false);
+  const [verTabela, setVerTabela] = useState(false);
 
   const agregados = useQuery({ queryKey: ["boletos", "dashboard"], queryFn: buscarDashboard });
   const boletos = useQuery({ queryKey: ["boletos", "meus"], queryFn: listarMeusBoletos });
@@ -55,6 +94,14 @@ export function Dashboard() {
   const futuros = meses(hojeISO(), 0);
   const emAberto = lista.filter((b) => b.status !== "PAGO");
   const pagoPorMes = porMes(lista, passados, (b) => b.dataPagamento, valor);
+  const resumo = resumoPorMes(lista, passados);
+  const mesAtual = resumo[resumo.length - 1];
+  const mesAnterior = resumo[resumo.length - 2];
+  const totalAtual = totalDoMes(mesAtual);
+  const delta = variacao(totalAtual, totalDoMes(mesAnterior));
+  const nomeMes = (m: ResumoMes) => m.rotuloLongo.split(" de ")[0];
+  const temDados = resumo.some((m) => totalDoMes(m) > 0);
+
   const sparks = boletos.data && {
     atrasados: porMes(lista.filter((b) => b.status === "ATRASADO"), passados, vencimento),
     aVencer: porMes(lista.filter((b) => b.status === "A_VENCER"), futuros, vencimento),
@@ -121,25 +168,56 @@ export function Dashboard() {
         </div>
       )}
 
-      <section className="mt-6 rounded-lg border bg-card p-5 shadow-xs md:p-6" aria-labelledby="pago-titulo">
-        <h2 id="pago-titulo" className="font-display text-lg font-extrabold tracking-tight">
-          Pago por mês
-        </h2>
-        <p className="text-sm text-ink-600">Últimos 6 meses, pela data de pagamento.</p>
+      <section className="mt-6 rounded-lg border bg-card p-5 shadow-xs md:p-6" aria-labelledby="contas-titulo">
+        <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+          <div>
+            <h2 id="contas-titulo" className="font-display text-lg font-extrabold tracking-tight">
+              Contas por mês
+            </h2>
+            <p className="text-sm text-ink-600">Valor por mês de vencimento, últimos 6 meses.</p>
+          </div>
+          {boletos.data && (
+            <div className="text-right">
+              <p className="font-mono text-2xl font-bold">{formatarMoeda(totalAtual)}</p>
+              <p className="text-xs text-ink-600">
+                em contas de {nomeMes(mesAtual)}
+                {delta !== null && (
+                  <>
+                    {" · "}
+                    <span className="font-semibold text-foreground">
+                      {delta > 0 ? "▲ " : delta < 0 ? "▼ " : ""}
+                      {percentual.format(Math.abs(delta))}
+                    </span>{" "}
+                    vs {nomeMes(mesAnterior)}
+                  </>
+                )}
+                {totalAtual > 0 && (
+                  <>
+                    {" · "}
+                    <span className="font-semibold text-foreground">{percentual.format(mesAtual.valores.pago / totalAtual)}</span> pago
+                  </>
+                )}
+              </p>
+            </div>
+          )}
+        </div>
+
         {boletos.isPending ? (
           <div className="mt-5 h-52 animate-pulse rounded-md bg-surface-hover" aria-label="Carregando gráfico" />
         ) : boletos.isError ? (
           <Aviso texto={mensagemErro(boletos.error)} onTentar={() => boletos.refetch()} />
+        ) : !temDados ? (
+          <p className="mt-6 py-10 text-center text-sm text-ink-600">Nenhum boleto venceu nos últimos 6 meses.</p>
         ) : (
-          <div className="mt-5">
-            <BarrasMensais
-              meses={passados.map((m, i) => ({
-                rotulo: new Date(`${m}-15T12:00`).toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
-                valor: pagoPorMes[i],
-                atual: i === passados.length - 1,
-              }))}
-            />
-          </div>
+          <>
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+              <LegendaSituacao />
+              <Button variant="outline" size="sm" aria-pressed={verTabela} onClick={() => setVerTabela(!verTabela)}>
+                {verTabela ? "Ver gráfico" : "Ver tabela"}
+              </Button>
+            </div>
+            <div className="mt-8">{verTabela ? <TabelaMensal meses={resumo} /> : <BarrasEmpilhadas meses={resumo} />}</div>
+          </>
         )}
       </section>
 

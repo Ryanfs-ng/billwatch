@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { StatusDot } from "../components/StatusDot";
 import { filtrarBoletos } from "../pages/Boletos";
-import { meses, porMes, proximosVencimentos } from "../pages/Dashboard";
+import { meses, porMes, proximosVencimentos, resumoPorMes, variacao } from "../pages/Dashboard";
 import { corDoDia, diasDoMes } from "../pages/Calendario";
 import type { Boleto } from "../types";
 
@@ -86,5 +86,28 @@ describe("gráficos do dashboard", () => {
     const pago = { ...boleto("Água", "2026-08-10", "PAGO"), valor: 50, dataPagamento: "2026-09-02" };
     const lista2 = [pago, { ...pago, id: "x", dataPagamento: "2026-09-20" }, boleto("Gás", "2026-09-10", "PENDENTE")];
     expect(porMes(lista2, ["2026-08", "2026-09"], (b) => b.dataPagamento, (b) => b.valor)).toEqual([0, 100]);
+  });
+});
+
+describe("contas por mês", () => {
+  it("separa o valor de cada mês de vencimento em pago, em aberto e atrasado", () => {
+    const contas = [
+      { ...boleto("Luz", "2026-09-05", "PAGO"), valor: 100 },
+      { ...boleto("Água", "2026-09-18", "ATRASADO"), valor: 40 },
+      { ...boleto("Gás", "2026-10-02", "A_VENCER"), valor: 30 },
+      { ...boleto("Net", "2026-10-28", "PENDENTE"), valor: 20 },
+      { ...boleto("Aluguel", "2026-10-05", "PAGO"), valor: 500 },
+    ];
+    const [setembro, outubro] = resumoPorMes(contas, ["2026-09", "2026-10"]);
+    expect(setembro.valores).toEqual({ pago: 100, emAberto: 0, atrasado: 40 });
+    expect(outubro.valores).toEqual({ pago: 500, emAberto: 50, atrasado: 0 });
+    expect(outubro.quantidades).toEqual({ pago: 1, emAberto: 2, atrasado: 0 });
+    expect([setembro.atual, outubro.atual]).toEqual([false, true]);
+  });
+
+  it("calcula a variação e não divide por zero", () => {
+    expect(variacao(550, 140)).toBeCloseTo(2.93, 2);
+    expect(variacao(100, 125)).toBeCloseTo(-0.2);
+    expect(variacao(100, 0)).toBeNull();
   });
 });
