@@ -64,6 +64,8 @@ public class Usuario {
 
     private Instant emailTokenExpira;
 
+    private String googleId;
+
     public boolean podeVer(Usuario outro) {
         return id.equals(outro.getId())
                 || (grupo != null && outro.getGrupo() != null && grupo.getId().equals(outro.getGrupo().getId()));

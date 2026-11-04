@@ -38,6 +38,21 @@ describe("filtrarBoletos", () => {
     ]);
   });
 
+  it("deixa os pagos no fim, do mais recente para o mais antigo", () => {
+    const comPagos = [
+      ...lista,
+      boleto("Condomínio ago", "2026-08-10", "PAGO"),
+      boleto("Condomínio set", "2026-09-10", "PAGO"),
+    ];
+    expect(filtrarBoletos(comPagos, semFiltro, HOJE).map((b) => b.descricao)).toEqual([
+      "Conta de luz",
+      "Internet",
+      "Aluguel",
+      "Condomínio set",
+      "Condomínio ago",
+    ]);
+  });
+
   it("busca sem diferenciar maiúsculas e filtra por status", () => {
     expect(filtrarBoletos(lista, { ...semFiltro, busca: "LUZ" }, HOJE)).toHaveLength(1);
     expect(filtrarBoletos(lista, { ...semFiltro, status: "PENDENTE" }, HOJE)).toHaveLength(2);

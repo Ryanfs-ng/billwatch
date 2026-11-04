@@ -23,4 +23,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     Optional<Usuario> findByResetTokenHash(String resetTokenHash);
 
     Optional<Usuario> findByEmailTokenHash(String emailTokenHash);
+
+    Optional<Usuario> findByGoogleId(String googleId);
 }

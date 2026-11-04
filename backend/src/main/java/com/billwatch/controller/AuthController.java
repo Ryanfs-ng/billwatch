@@ -2,6 +2,7 @@ package com.billwatch.controller;
 
 import com.billwatch.dto.*;
 import com.billwatch.security.LimiteTentativas;
+import com.billwatch.service.GoogleAuthService;
 import com.billwatch.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UsuarioService usuarioService;
+    private final GoogleAuthService googleAuthService;
 
     @PostMapping("/registrar")
     @ResponseStatus(HttpStatus.ACCEPTED)
@@ -32,6 +34,12 @@ public class AuthController {
     @LimiteTentativas(maximo = 10, periodoMinutos = 15)
     public AuthResponse confirmarNovoEmail(@Valid @RequestBody ConfirmarEmailRequest dados) {
         return usuarioService.confirmarNovoEmail(dados.token());
+    }
+
+    @PostMapping("/google")
+    @LimiteTentativas(maximo = 20, periodoMinutos = 15)
+    public AuthResponse entrarComGoogle(@Valid @RequestBody GoogleLoginRequest dados) {
+        return googleAuthService.entrar(dados.credencial());
     }
 
     @PostMapping("/login")

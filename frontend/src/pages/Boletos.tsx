@@ -62,7 +62,14 @@ export function filtrarBoletos(boletos: Boleto[], { busca, status, periodo }: Fi
       if (periodo === "mes") return b.dataVencimento.slice(0, 7) === hoje.slice(0, 7);
       return b.dataVencimento >= hoje && b.dataVencimento <= limite;
     })
-    .sort((a, b) => a.dataVencimento.localeCompare(b.dataVencimento));
+    .sort(porSituacaoEVencimento);
+}
+
+function porSituacaoEVencimento(a: Boleto, b: Boleto): number {
+  const aPago = a.status === "PAGO";
+  const bPago = b.status === "PAGO";
+  if (aPago !== bPago) return aPago ? 1 : -1;
+  return aPago ? b.dataVencimento.localeCompare(a.dataVencimento) : a.dataVencimento.localeCompare(b.dataVencimento);
 }
 
 function somarDias(iso: string, dias: number): string {

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { NavLink, Outlet } from "react-router-dom";
 import {
-  Bell,
   CalendarDays,
   ChevronsLeft,
   ChevronsRight,
@@ -19,6 +18,7 @@ import { buscarPerfil } from "@/api/usuarios";
 import { Avatar } from "@/components/Avatar";
 import { BotaoTema } from "@/components/BotaoTema";
 import { IconButton } from "@/components/IconButton";
+import { Notificacoes } from "@/components/Notificacoes";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -131,9 +131,7 @@ export function AppLayout() {
             <Menu />
           </IconButton>
           <div className="ml-auto flex gap-2">
-            <IconButton label="Notificações (em breve)" disabled className="size-10 border">
-              <Bell />
-            </IconButton>
+            <Notificacoes />
             <BotaoTema />
           </div>
         </header>

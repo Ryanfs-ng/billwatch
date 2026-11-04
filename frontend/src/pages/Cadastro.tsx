@@ -1,4 +1,5 @@
 import { registrar } from "@/api/auth";
+import { BotaoGoogle } from "@/components/BotaoGoogle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
@@ -157,6 +158,8 @@ export function Cadastro() {
           {mutation.isPending ? "Criando conta..." : "Criar conta"}
         </Button>
       </form>
+
+      <BotaoGoogle texto="signup_with" />
 
       <p className="mt-6 text-center text-sm text-ink-600">
         Já tem conta?{" "}

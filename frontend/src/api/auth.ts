@@ -42,6 +42,11 @@ export async function confirmarEmail(token: string): Promise<AuthResponse> {
   return data;
 }
 
+export async function entrarComGoogle(credencial: string): Promise<AuthResponse> {
+  const { data } = await http.post<AuthResponse>("/auth/google", { credencial });
+  return data;
+}
+
 export async function confirmarNovoEmail(token: string): Promise<AuthResponse> {
   const { data } = await http.post<AuthResponse>("/auth/confirmar-novo-email", { token });
   return data;
