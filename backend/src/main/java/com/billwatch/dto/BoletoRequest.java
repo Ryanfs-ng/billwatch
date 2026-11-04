@@ -13,5 +13,6 @@ public record BoletoRequest(
         @Positive BigDecimal valor,
         @NotNull LocalDate dataVencimento,
         UUID responsavelId,
-        Boolean recorrente)
+        Boolean recorrente,
+        Boolean aplicarAosProximos)
 { }

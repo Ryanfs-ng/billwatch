@@ -54,6 +54,7 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
         dataVencimento: String(form.get("dataVencimento")),
         responsavelId: String(form.get("responsavelId") ?? "") || undefined,
         recorrente: form.get("recorrente") === "on",
+        aplicarAosProximos: form.get("aplicarAosProximos") === "on",
       };
       const salvo = boleto ? await editarBoleto(boleto.id, payload) : await criarBoleto(payload);
 
@@ -151,7 +152,9 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
             <div>
               <span id="recorrente-titulo" className="block text-sm font-semibold">Repetir todo mês</span>
               <span id="recorrente-texto" className="block text-xs text-ink-600">
-                O boleto do mês seguinte é criado automaticamente, com a mesma descrição, valor e responsável.
+                {boleto?.recorrente
+                  ? "Desligar encerra a repetição a partir deste mês, inclusive nos meses já criados."
+                  : "O boleto do mês seguinte é criado automaticamente, com a mesma descrição, valor e responsável."}
               </span>
             </div>
             <HaloSwitch
@@ -162,6 +165,23 @@ export function BoletoForm({ aberto, boleto, onFechar, onSalvo }: BoletoFormProp
               aria-describedby="recorrente-texto"
             />
           </div>
+
+          {boleto?.recorrente && boleto.proximoGerado && (
+            <div className="flex items-center justify-between gap-4 rounded-xl border border-border-strong bg-card p-3">
+              <div>
+                <span id="proximos-titulo" className="block text-sm font-semibold">Aplicar aos próximos meses</span>
+                <span id="proximos-texto" className="block text-xs text-ink-600">
+                  Atualiza descrição, valor e responsável dos boletos já criados para os meses seguintes que ainda não foram pagos.
+                </span>
+              </div>
+              <HaloSwitch
+                name="aplicarAosProximos"
+                value="on"
+                aria-labelledby="proximos-titulo"
+                aria-describedby="proximos-texto"
+              />
+            </div>
+          )}
 
           <div>
             <label htmlFor="arquivo" className={label}>

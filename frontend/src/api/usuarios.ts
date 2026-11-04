@@ -11,9 +11,8 @@ export async function buscarPerfil(): Promise<Perfil> {
   return data;
 }
 
-export async function alterarEmail(payload: { novoEmail: string; senhaAtual: string }): Promise<string> {
-  const { data } = await http.put<{ token: string }>("/usuarios/eu/email", payload);
-  return data.token;
+export async function alterarEmail(payload: { novoEmail: string; senhaAtual: string }): Promise<void> {
+  await http.put("/usuarios/eu/email", payload);
 }
 
 export async function alterarSenha(payload: { senhaAtual: string; novaSenha: string }): Promise<string> {

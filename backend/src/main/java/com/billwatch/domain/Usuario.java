@@ -58,6 +58,12 @@ public class Usuario {
 
     private Instant credenciaisAlteradasEm;
 
+    private String emailPendente;
+
+    private String emailTokenHash;
+
+    private Instant emailTokenExpira;
+
     public boolean podeVer(Usuario outro) {
         return id.equals(outro.getId())
                 || (grupo != null && outro.getGrupo() != null && grupo.getId().equals(outro.getGrupo().getId()));

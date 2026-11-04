@@ -17,4 +17,6 @@ public interface BoletoRepository extends JpaRepository<Boleto, UUID> {
 
     List<Boleto> findByRecorrenteTrueAndProximoGeradoFalseAndDataVencimentoBefore(LocalDate limite);
 
+    List<Boleto> findBySerieIdAndDataVencimentoAfter(UUID serieId, LocalDate data);
+
 }

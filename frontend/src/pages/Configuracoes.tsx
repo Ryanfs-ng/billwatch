@@ -160,30 +160,38 @@ function SecaoFoto({ perfil }: { perfil: Perfil }) {
 }
 
 function SecaoEmail({ perfil }: { perfil: Perfil }) {
-  const { signIn } = useAuth();
   const queryClient = useQueryClient();
   const [novoEmail, setNovoEmail] = useState("");
   const [senhaAtual, setSenhaAtual] = useState("");
 
   const salvar = useMutation({
     mutationFn: alterarEmail,
-    onSuccess: (token) => {
-      signIn(token);
+    onSuccess: (_, dados) => {
       queryClient.invalidateQueries({ queryKey: ["perfil"] });
       setNovoEmail("");
       setSenhaAtual("");
-      toast.success("E-mail alterado.");
+      toast.success(`Enviamos um link para ${dados.novoEmail}. O e-mail só muda depois que você abrir o link.`);
     },
     onError: (e) => toast.error(mensagemPorStatus(e, { ...SENHA_INCORRETA, 409: "Este e-mail já está cadastrado." })),
   });
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (novoEmail.trim().toLowerCase() === perfil.email.toLowerCase()) {
+      toast.error("Este já é o seu e-mail.");
+      return;
+    }
     salvar.mutate({ novoEmail: novoEmail.trim(), senhaAtual });
   }
 
   return (
     <Secao titulo="E-mail" descricao={`Você entra no BillWatch com ${perfil.email}.`}>
+      {perfil.emailPendente && (
+        <p role="status" className="mb-4 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm text-brand-700">
+          Aguardando confirmação de <strong className="font-semibold">{perfil.emailPendente}</strong>. Abra o link enviado
+          para esse endereço para concluir a troca.
+        </p>
+      )}
       <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="novo-email" className={label}>Novo e-mail</label>

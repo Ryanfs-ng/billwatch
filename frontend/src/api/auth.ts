@@ -33,7 +33,16 @@ export async function redefinirSenha(payload: RedefinirSenhaPayload): Promise<vo
   await http.post("/auth/redefinir-senha", payload);
 }
 
-export async function registrar(payload: RegistrarPayload): Promise<AuthResponse> {
-  const { data } = await http.post<AuthResponse>("/auth/registrar", payload);
+export async function registrar(payload: RegistrarPayload): Promise<void> {
+  await http.post("/auth/registrar", payload);
+}
+
+export async function confirmarEmail(token: string): Promise<AuthResponse> {
+  const { data } = await http.post<AuthResponse>("/auth/confirmar-email", { token });
+  return data;
+}
+
+export async function confirmarNovoEmail(token: string): Promise<AuthResponse> {
+  const { data } = await http.post<AuthResponse>("/auth/confirmar-novo-email", { token });
   return data;
 }

@@ -26,7 +26,10 @@ export function Login() {
     },
     onError: (erro) => {
       toast.error(
-        mensagemPorStatus(erro, { 401: "E-mail ou senha inválidos." }, "Não foi possível entrar. Tente novamente."),
+        mensagemPorStatus(erro, {
+          401: "E-mail ou senha inválidos.",
+          403: "Confirme seu e-mail pelo link que enviamos para ativar a conta.",
+        }, "Não foi possível entrar. Tente novamente."),
       );
     },
   });

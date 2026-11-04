@@ -13,7 +13,9 @@ export interface PreferenciasNotificacao {
   resumoSemanalAtivo: boolean;
 }
 
-export interface Perfil extends Usuario, PreferenciasNotificacao {}
+export interface Perfil extends Usuario, PreferenciasNotificacao {
+  emailPendente: string | null;
+}
 
 export interface Grupo {
   id: string;
@@ -34,6 +36,7 @@ export interface Boleto {
   responsavelNome: string;
   status: StatusBoleto;
   recorrente: boolean;
+  proximoGerado: boolean;
 }
 
 export interface BoletoPayload {
@@ -42,6 +45,7 @@ export interface BoletoPayload {
   dataVencimento: string;
   responsavelId?: string;
   recorrente?: boolean;
+  aplicarAosProximos?: boolean;
 }
 
 export interface DashboardAgregados {

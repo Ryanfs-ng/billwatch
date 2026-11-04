@@ -16,10 +16,22 @@ public class AuthController {
     private final UsuarioService usuarioService;
 
     @PostMapping("/registrar")
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.ACCEPTED)
     @LimiteTentativas(maximo = 5, periodoMinutos = 60)
-    public AuthResponse registrar (@Valid @RequestBody RegistrarRequest dados ) {
-        return usuarioService.registrar(dados);
+    public void registrar (@Valid @RequestBody RegistrarRequest dados ) {
+        usuarioService.registrar(dados);
+    }
+
+    @PostMapping("/confirmar-email")
+    @LimiteTentativas(maximo = 10, periodoMinutos = 15)
+    public AuthResponse confirmarEmail(@Valid @RequestBody ConfirmarEmailRequest dados) {
+        return usuarioService.confirmarEmail(dados.token());
+    }
+
+    @PostMapping("/confirmar-novo-email")
+    @LimiteTentativas(maximo = 10, periodoMinutos = 15)
+    public AuthResponse confirmarNovoEmail(@Valid @RequestBody ConfirmarEmailRequest dados) {
+        return usuarioService.confirmarNovoEmail(dados.token());
     }
 
     @PostMapping("/login")

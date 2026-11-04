@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -65,6 +66,7 @@ public class BoletoService {
                 .responsavel(responsavel)
                 .recorrente(recorrente)
                 .diaRecorrencia(recorrente ? dados.dataVencimento().getDayOfMonth() : null)
+                .serieId(recorrente ? UUID.randomUUID() : null)
                 .build());
         if (recorrente) {
             recorrenciaService.gerarProximos(LocalDate.now());
@@ -101,10 +103,12 @@ public class BoletoService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado"));
     }
 
+    @Transactional
     public BoletoResponse editarBoleto(UUID id, BoletoRequest dados, String email) {
         Boleto boleto = buscar(id, email);
+        LocalDate vencimentoAnterior = boleto.getDataVencimento();
         boleto.setDescricao(dados.descricao());
-        boolean mudouVencimento = !dados.dataVencimento().equals(boleto.getDataVencimento());
+        boolean mudouVencimento = !dados.dataVencimento().equals(vencimentoAnterior);
         if (mudouVencimento) {
             boleto.setNotificadoEm(null);
         }
@@ -118,11 +122,30 @@ public class BoletoService {
         if (dados.responsavelId() != null) {
             boleto.setResponsavel(buscarResponsavel(dados.responsavelId(), usuarioLogado(email)));
         }
+        if (recorrente && boleto.getSerieId() == null) {
+            boleto.setSerieId(UUID.randomUUID());
+        }
+        atualizarProximos(boleto, vencimentoAnterior, Boolean.TRUE.equals(dados.aplicarAosProximos()));
         Boleto salvo = boletoRepository.save(boleto);
         if (recorrente) {
             recorrenciaService.gerarProximos(LocalDate.now());
         }
         return entidadeParaResponse(salvo);
+    }
+
+    private void atualizarProximos(Boleto boleto, LocalDate vencimentoAnterior, boolean aplicarAosProximos) {
+        if (boleto.getSerieId() == null) return;
+        for (Boleto proximo : boletoRepository.findBySerieIdAndDataVencimentoAfter(boleto.getSerieId(), vencimentoAnterior)) {
+            if (proximo.getId().equals(boleto.getId())) continue;
+            if (!boleto.isRecorrente()) {
+                proximo.setRecorrente(false);
+            } else if (aplicarAosProximos && proximo.getDataPagamento() == null) {
+                proximo.setDescricao(boleto.getDescricao());
+                proximo.setValor(boleto.getValor());
+                proximo.setResponsavel(boleto.getResponsavel());
+            }
+            boletoRepository.save(proximo);
+        }
     }
 
     public DashboardResponse dashboard(String email) {

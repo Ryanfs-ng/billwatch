@@ -363,7 +363,7 @@ export function Boletos() {
         titulo="Excluir boleto?"
         descricao={
           excluindo
-            ? `"${excluindo.descricao}"${excluindo.anexo ? " e o anexo serão removidos" : " será removido"}. Essa ação não pode ser desfeita.`
+            ? `"${excluindo.descricao}"${excluindo.anexo ? " e o anexo serão removidos" : " será removido"}. Essa ação não pode ser desfeita.${avisoSerie(excluindo)}`
             : ""
         }
       >
@@ -381,6 +381,13 @@ export function Boletos() {
 
     </>
   );
+}
+
+function avisoSerie(boleto: Boleto) {
+  if (!boleto.recorrente) return "";
+  return boleto.proximoGerado
+    ? " Só este mês sai, e a repetição mensal continua."
+    : " Este é o boleto mais recente da série, então a repetição mensal também será encerrada.";
 }
 
 function Esqueleto() {

@@ -52,6 +52,7 @@ public class RecorrenciaService {
                 .responsavel(origem.getResponsavel())
                 .dataVencimento(proximoVencimento(origem.getDataVencimento(), dia))
                 .recorrente(true)
+                .serieId(origem.getSerieId())
                 .diaRecorrencia(dia)
                 .build();
     }

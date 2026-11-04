@@ -42,8 +42,9 @@ public class UsuarioController {
 
     @PutMapping("/eu/email")
     @LimiteTentativas(maximo = 5, periodoMinutos = 15)
-    public AuthResponse alterarEmail(@Valid @RequestBody AlterarEmailRequest dados, Authentication auth) {
-        return usuarioService.alterarEmail(auth.getName(), dados.novoEmail(), dados.senhaAtual());
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void alterarEmail(@Valid @RequestBody AlterarEmailRequest dados, Authentication auth) {
+        usuarioService.alterarEmail(auth.getName(), dados.novoEmail(), dados.senhaAtual());
     }
 
     @PutMapping("/eu/senha")

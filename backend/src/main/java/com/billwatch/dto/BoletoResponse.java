@@ -19,7 +19,8 @@ public record BoletoResponse(
         UUID responsavelId,
         String responsavelNome,
         StatusBoleto status,
-        boolean recorrente
+        boolean recorrente,
+        boolean proximoGerado
 ) {
     public static BoletoResponse of(Boleto boleto, StatusBoleto status) {
         return new BoletoResponse(
@@ -33,7 +34,8 @@ public record BoletoResponse(
                 boleto.getResponsavel().getId(),
                 boleto.getResponsavel().getNome(),
                 status,
-                boleto.isRecorrente()
+                boleto.isRecorrente(),
+                boleto.isProximoGerado()
         );
     }
 }

@@ -57,6 +57,8 @@ public class Boleto {
     @Builder.Default
     private boolean proximoGerado = false;
 
+    private UUID serieId;
+
     @PrePersist
     void aoPersistir() {
         if (dataAnexado == null) {

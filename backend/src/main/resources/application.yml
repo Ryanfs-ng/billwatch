@@ -39,3 +39,5 @@ uploads:
 app:
   url-frontend: http://localhost:5173
   link-reset-senha: ${app.url-frontend}/redefinir-senha
+  link-confirmar-email: ${app.url-frontend}/confirmar-email
+  link-confirmar-novo-email: ${app.url-frontend}/confirmar-novo-email

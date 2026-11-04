@@ -21,4 +21,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     List<Usuario> findByResumoSemanalAtivoTrue();
 
     Optional<Usuario> findByResetTokenHash(String resetTokenHash);
+
+    Optional<Usuario> findByEmailTokenHash(String emailTokenHash);
 }

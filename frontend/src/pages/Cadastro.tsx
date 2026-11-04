@@ -2,9 +2,10 @@ import { registrar } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
+import { MailCheck } from "lucide-react";
 import { mensagemPorStatus } from "@/lib/utils";
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 export function Cadastro() {
@@ -13,14 +14,13 @@ export function Cadastro() {
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [erroConfirmacao, setErroConfirmacao] = useState("");
-
-  const navigate = useNavigate();
+  const [enviadoPara, setEnviadoPara] = useState<string | null>(null);
 
   const mutation = useMutation({
     mutationFn: registrar,
-    onSuccess: () => {
-      toast.success("Conta criada! Entre com seu e-mail e senha.");
-      navigate("/login", { replace: true, viewTransition: true, state: { email } });
+    onSuccess: (_, dados) => {
+      if (enviadoPara) toast.success("E-mail reenviado.");
+      setEnviadoPara(dados.email);
     },
     onError: (erro) => {
       toast.error(
@@ -41,6 +41,40 @@ export function Cadastro() {
     }
     setErroConfirmacao("");
     mutation.mutate({ nome, email, senha });
+  }
+
+  if (enviadoPara) {
+    return (
+      <div className="text-center">
+        <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+          <MailCheck aria-hidden className="size-7" />
+        </span>
+        <h2 className="mt-4 font-display text-[26px] font-extrabold text-foreground">Confira seu e-mail</h2>
+        <p className="mt-2 text-sm text-ink-600">
+          Enviamos um link de confirmação para <strong className="font-semibold text-foreground">{enviadoPara}</strong>.
+          Sua conta só é criada depois que você abrir o link, que vale por 24 horas.
+        </p>
+        <div className="mt-6 flex flex-col gap-2">
+          <Button
+            variant="outline"
+            disabled={mutation.isPending}
+            className="h-11 w-full"
+            onClick={() => mutation.mutate({ nome, email: enviadoPara, senha })}
+          >
+            {mutation.isPending ? "Reenviando..." : "Reenviar e-mail"}
+          </Button>
+          <Button variant="ghost" className="h-11 w-full" onClick={() => setEnviadoPara(null)}>
+            Corrigir e-mail
+          </Button>
+        </div>
+        <p className="mt-6 text-sm text-ink-600">
+          Já confirmou?{" "}
+          <Link to="/login" viewTransition className="font-medium text-primary hover:underline">
+            Entrar
+          </Link>
+        </p>
+      </div>
+    );
   }
 
   return (
