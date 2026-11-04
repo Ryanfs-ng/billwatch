@@ -12,11 +12,28 @@ import { CheckAnimado, preferePoucoMovimento } from "@/components/SucessoAnimado
 import { STATUS, StatusDot } from "@/components/StatusDot";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { HaloSegmented } from "@/components/ui/halo-segmented";
+import {
+  HaloSelect,
+  HaloSelectContent,
+  HaloSelectItem,
+  HaloSelectTrailingIndicator,
+  HaloSelectTrigger,
+  HaloSelectValue,
+  type PolishedSelectItem,
+} from "@/components/ui/halo-select";
 import { consultaDoGrupo } from "@/pages/Grupo";
 import { cn, formatarData, formatarMoeda, hojeISO, inputClass, mensagemErro } from "@/lib/utils";
 import type { Boleto, StatusBoleto } from "@/types";
 
 export type Periodo = "qualquer" | "7" | "30" | "mes";
+
+const OPCOES_STATUS: PolishedSelectItem[] = [
+  { value: "todos", label: "Todos" },
+  ...Object.entries(STATUS).map(([value, { label }]) => ({ value, label })),
+];
+
+const mesmaOpcao = (a: unknown, b: unknown) =>
+  (a as PolishedSelectItem | null)?.value === (b as PolishedSelectItem | null)?.value;
 
 export interface Filtros {
   busca: string;
@@ -180,8 +197,8 @@ export function Boletos() {
         </div>
       )}
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:flex lg:items-end">
-        <div className="lg:w-60">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end">
+        <div className="lg:min-w-56 lg:flex-1">
           <label htmlFor="busca" className="mb-1.5 block text-[13px] font-semibold">Buscar boleto</label>
           <input
             id="busca"
@@ -192,21 +209,32 @@ export function Boletos() {
             className={inputClass}
           />
         </div>
-        <div className="lg:w-60">
+        <div className="lg:shrink-0">
           <label htmlFor="status" className="mb-1.5 block text-[13px] font-semibold">Status</label>
-          <select
-            id="status"
-            value={filtros.status}
-            onChange={(e) => setFiltros({ ...filtros, status: e.target.value as Filtros["status"] })}
-            className={inputClass}
+          <HaloSelect
+            isItemEqualToValue={mesmaOpcao}
+            items={OPCOES_STATUS}
+            placeholder="Todos"
+            value={OPCOES_STATUS.find((o) => o.value === (filtros.status || "todos")) ?? null}
+            onValueChange={(opcao) => {
+              const valor = (opcao as PolishedSelectItem | null)?.value;
+              setFiltros({ ...filtros, status: (valor && valor !== "todos" ? valor : "") as Filtros["status"] });
+            }}
           >
-            <option value="">Todos</option>
-            {Object.entries(STATUS).map(([valor, { label }]) => (
-              <option key={valor} value={valor}>{label}</option>
-            ))}
-          </select>
+            <HaloSelectTrigger id="status">
+              <HaloSelectValue />
+              <HaloSelectTrailingIndicator />
+            </HaloSelectTrigger>
+            <HaloSelectContent>
+              {OPCOES_STATUS.map((opcao, i) => (
+                <HaloSelectItem index={i} key={opcao.value} label={opcao.label} value={opcao}>
+                  {opcao.label}
+                </HaloSelectItem>
+              ))}
+            </HaloSelectContent>
+          </HaloSelect>
         </div>
-        <div>
+        <div className="lg:shrink-0">
           <span id="periodo" className="mb-1.5 block text-[13px] font-semibold">Vencimento</span>
           <HaloSegmented
             aria-labelledby="periodo"

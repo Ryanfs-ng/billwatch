@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant fine-hover (@media (hover: hover) and (pointer: fine));
 
 :root {
   --brand-50: #f0f6fe;
@@ -155,6 +156,9 @@
   --shadow-md: var(--bw-shadow-md);
 }
 
+::view-transition {
+  pointer-events: none;
+}
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 200ms;

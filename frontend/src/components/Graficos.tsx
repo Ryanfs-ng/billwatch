@@ -61,6 +61,10 @@ export function LegendaSituacao() {
   );
 }
 
+const ALTURA_GRAFICO_REM = 13;
+const ALTURA_TOOLTIP_REM = 8;
+const ESPACO_ROTULO_REM = 1.75;
+
 export function BarrasEmpilhadas({ meses }: { meses: ResumoMes[] }) {
   const [ativo, setAtivo] = useState<number | null>(null);
   const maximo = Math.max(...meses.map(totalDoMes), 1);
@@ -73,6 +77,27 @@ export function BarrasEmpilhadas({ meses }: { meses: ResumoMes[] }) {
           const visiveis = SERIES.filter((s) => m.valores[s.chave] > 0);
           const topo = visiveis.at(-1)?.chave;
           const destacado = ativo === i;
+          const altura = (total / maximo) * 85;
+          const cabeAcima = ALTURA_GRAFICO_REM * (1 - altura / 100) - ESPACO_ROTULO_REM >= ALTURA_TOOLTIP_REM;
+
+          const caixa = (
+            <div className="rounded-md border bg-popover p-3 text-xs text-popover-foreground shadow-md">
+              <p className="font-semibold text-ink-600 first-letter:uppercase">{m.rotuloLongo}</p>
+              <p className="mt-0.5 font-mono text-sm font-bold tabular-nums">{formatarMoeda(total)}</p>
+              <ul className="mt-2 space-y-1">
+                {SERIES.map((s) => (
+                  <li key={s.chave} className="flex items-center gap-2 whitespace-nowrap">
+                    <span className={cn("h-0.5 w-3 shrink-0 rounded-full", s.cor)} />
+                    <span className="font-mono font-semibold tabular-nums">{formatarMoeda(m.valores[s.chave])}</span>
+                    <span className="text-ink-600">
+                      {s.label}
+                      <span className="hidden sm:inline"> · {boletos(m.quantidades[s.chave])}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
 
           return (
             <li
@@ -88,7 +113,7 @@ export function BarrasEmpilhadas({ meses }: { meses: ResumoMes[] }) {
             >
               <div
                 className="absolute bottom-0 left-1/2 flex w-full max-w-6 -translate-x-1/2 flex-col-reverse gap-[2px]"
-                style={{ height: `${(total / maximo) * 85}%` }}
+                style={{ height: `${altura}%` }}
               >
                 {total > 0 && (
                   <span className="absolute -top-5 left-1/2 -translate-x-1/2 font-mono text-[11px] font-semibold whitespace-nowrap text-ink-600 tabular-nums">
@@ -102,31 +127,33 @@ export function BarrasEmpilhadas({ meses }: { meses: ResumoMes[] }) {
                     style={{ flex: `${m.valores[s.chave]} 1 0%` }}
                   />
                 ))}
-
-                {destacado && (
-                  <div
-                    aria-hidden
-                    className={cn(
-                      "pointer-events-none absolute bottom-full z-10 mb-7 w-max min-w-44 rounded-md border bg-popover p-3 text-xs text-popover-foreground shadow-md",
-                      i === 0 ? "left-0" : i === meses.length - 1 ? "right-0" : "left-1/2 -translate-x-1/2",
-                    )}
-                  >
-                    <p className="font-semibold text-ink-600 first-letter:uppercase">{m.rotuloLongo}</p>
-                    <p className="mt-0.5 font-mono text-sm font-bold tabular-nums">{formatarMoeda(total)}</p>
-                    <ul className="mt-2 space-y-1">
-                      {SERIES.map((s) => (
-                        <li key={s.chave} className="flex items-center gap-2">
-                          <span className={cn("h-0.5 w-3 shrink-0 rounded-full", s.cor)} />
-                          <span className="font-mono font-semibold tabular-nums">{formatarMoeda(m.valores[s.chave])}</span>
-                          <span className="text-ink-600">
-                            {s.label} · {boletos(m.quantidades[s.chave])}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
+
+              {destacado && total > 0 && cabeAcima && (
+                <div
+                  aria-hidden
+                  className={cn(
+                    "pointer-events-none absolute z-10 w-max",
+                    i === 0 ? "left-0" : i === meses.length - 1 ? "right-0" : "left-1/2 -translate-x-1/2",
+                  )}
+                  style={{ bottom: `calc(${altura}% + ${ESPACO_ROTULO_REM}rem)` }}
+                >
+                  {caixa}
+                </div>
+              )}
+
+              {destacado && total > 0 && !cabeAcima && (
+                <div
+                  aria-hidden
+                  className={cn(
+                    "pointer-events-none absolute inset-y-0 z-10 flex w-max flex-col",
+                    i < meses.length / 2 ? "left-[calc(50%+1.25rem)]" : "right-[calc(50%+1.25rem)]",
+                  )}
+                >
+                  <div className="min-h-0 shrink" style={{ flexBasis: `${100 - altura}%` }} />
+                  <div className="shrink-0">{caixa}</div>
+                </div>
+              )}
             </li>
           );
         })}

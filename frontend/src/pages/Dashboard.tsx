@@ -130,9 +130,8 @@ export function Dashboard() {
             label="Atrasados"
             valor={a?.totalAtrasados}
             rodape={a && (a.totalAtrasados ? "Precisam de atenção" : "Nenhum atrasado")}
-            corRodape={a?.totalAtrasados ? "text-atrasado" : "text-pago"}
+            cor={a?.totalAtrasados ? "text-atrasado" : undefined}
             serie={sparks?.atrasados}
-            corSerie="text-atrasado"
             legendaSerie="Atrasados por mês de vencimento, últimos 6 meses"
           />
           <StatCard
@@ -140,9 +139,8 @@ export function Dashboard() {
             label="A vencer"
             valor={a?.totalAVencer}
             rodape={a && (a.totalAVencer ? "Vencem nos próximos dias" : "Nada vencendo em breve")}
-            corRodape="text-a-vencer"
+            cor={a?.totalAVencer ? "text-a-vencer" : undefined}
             serie={sparks?.aVencer}
-            corSerie="text-a-vencer"
             legendaSerie="Boletos a vencer por mês, próximos 6 meses"
           />
           <StatCard
@@ -150,9 +148,7 @@ export function Dashboard() {
             label="Total em aberto"
             valor={a && formatarMoeda(a.somaEmAberto)}
             rodape="Atrasados, a vencer e pendentes"
-            corRodape="text-ink-600"
             serie={sparks?.emAberto}
-            corSerie="text-brand-500"
             legendaSerie="Valor em aberto por mês de vencimento, próximos 6 meses"
           />
           <StatCard
@@ -160,9 +156,8 @@ export function Dashboard() {
             label="Pago no mês"
             valor={a && formatarMoeda(a.somaPagaNoMes)}
             rodape={new Date(`${hojeISO()}T12:00`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
-            corRodape="text-pago"
+            cor={a?.somaPagaNoMes ? "text-pago" : undefined}
             serie={sparks?.pago}
-            corSerie="text-pago"
             legendaSerie="Valor pago por mês, últimos 6 meses"
           />
         </div>
@@ -181,7 +176,7 @@ export function Dashboard() {
               <p className="font-mono text-2xl font-bold">{formatarMoeda(totalAtual)}</p>
               <p className="text-xs text-ink-600">
                 em contas de {nomeMes(mesAtual)}
-                {delta !== null && (
+                {delta !== null && totalAtual > 0 && (
                   <>
                     {" · "}
                     <span className="font-semibold text-foreground">
@@ -272,21 +267,20 @@ export function Dashboard() {
   );
 }
 
-function StatCard({ icone: Icone, label, valor, rodape, corRodape, serie, corSerie, legendaSerie }: {
+function StatCard({ icone: Icone, label, valor, rodape, cor, serie, legendaSerie }: {
   icone: LucideIcon;
   label: string;
   valor: ReactNode;
   rodape: ReactNode;
-  corRodape: string;
+  cor?: string;
   serie?: number[];
-  corSerie: string;
   legendaSerie: string;
 }) {
   const carregando = valor === undefined;
   return (
     <div className="rounded-lg border bg-card p-5 shadow-xs">
       <p className="flex items-center gap-2 text-sm font-semibold text-ink-600">
-        <Icone className="size-4" aria-hidden />
+        <Icone className={cn("size-4", cor)} aria-hidden />
         {label}
       </p>
       {carregando ? (
@@ -295,14 +289,14 @@ function StatCard({ icone: Icone, label, valor, rodape, corRodape, serie, corSer
         <div className="mt-2 flex items-end justify-between gap-3">
           <p className="font-mono text-[26px] leading-8 font-bold tabular-nums">{valor}</p>
           {serie && (
-            <span title={legendaSerie} className={cn("shrink-0", corSerie)}>
+            <span title={legendaSerie} className={cn("shrink-0", cor ?? "text-ink-400")}>
               <Sparkline valores={serie} />
               <span className="sr-only">{legendaSerie}</span>
             </span>
           )}
         </div>
       )}
-      <p className={cn("mt-2 text-xs font-semibold first-letter:uppercase", corRodape)}>{rodape ?? " "}</p>
+      <p className="mt-2 text-xs font-semibold text-ink-600 first-letter:uppercase">{rodape ?? " "}</p>
     </div>
   );
 }
