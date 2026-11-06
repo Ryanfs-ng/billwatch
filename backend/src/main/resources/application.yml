@@ -2,7 +2,7 @@ spring:
   application:
     name: billwatch
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/billwatch?currentSchema=billwatch
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/billwatch?currentSchema=billwatch}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD}
   flyway:
@@ -12,15 +12,20 @@ spring:
       ddl-auto: validate
     open-in-view: false
   mail:
-    host: localhost
-    port: 1025
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${MAIL_STARTTLS:false}
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
 
 server:
-  port: 8080
+  port: ${PORT:8080}
   forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:none}
 
 boletos:
@@ -37,10 +42,12 @@ jwt:
   expiracao-minutos: 1440
 
 uploads:
-  diretorio: ./uploads
+  diretorio: ${UPLOADS_DIR:./uploads}
 
 app:
-  url-frontend: http://localhost:5173
+  url-frontend: ${APP_URL_FRONTEND:http://localhost:5173}
+  origens-permitidas: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
+  email-remetente: ${MAIL_FROM:BillWatch <nao-responda@billwatch.local>}
   link-reset-senha: ${app.url-frontend}/redefinir-senha
   link-confirmar-email: ${app.url-frontend}/confirmar-email
   link-confirmar-novo-email: ${app.url-frontend}/confirmar-novo-email

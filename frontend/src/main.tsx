@@ -10,7 +10,13 @@ const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider attribute="class" storageKey="billwatch_tema" defaultTheme="system" enableSystem>
+    <ThemeProvider
+      attribute="class"
+      storageKey="billwatch_tema"
+      defaultTheme="system"
+      enableSystem
+      scriptProps={{ type: 'application/json' }}
+    >
       <QueryClientProvider client={queryClient}>
         <App />
       </QueryClientProvider>

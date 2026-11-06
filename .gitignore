@@ -30,3 +30,14 @@ uploads/
 # Notas locais de design (não sobem pro remoto)
 frontend/Design.md
 HANDOFF.md
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
+
+
+# Claude Code (configurações, skills e instruções locais)
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+
+# Workspace do Playwright CLI
+.playwright/
