@@ -1,48 +1,53 @@
 package com.billwatch.service;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
+import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class ArquivoService {
 
-    @Value("${uploads.diretorio}")
-    private String diretorioUploads;
+    private final JdbcTemplate jdbc;
 
     public String salvar(MultipartFile arquivo, Map<String, String> tiposAceitos, String mensagemTipoInvalido) throws IOException {
         String extensao = tiposAceitos.get(arquivo.getContentType());
         if (extensao == null) {
             throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, mensagemTipoInvalido);
         }
-        Path pasta = Path.of(diretorioUploads);
-        Files.createDirectories(pasta);
         String nome = UUID.randomUUID() + extensao;
-        Files.copy(arquivo.getInputStream(), pasta.resolve(nome));
+        jdbc.update("INSERT INTO arquivos (nome, tipo, conteudo) VALUES (?, ?, ?)", nome, arquivo.getContentType(), arquivo.getBytes());
         return nome;
     }
 
     public Resource carregar(String nome, String mensagemAusente) {
-        Resource recurso = nome == null ? null : new FileSystemResource(Path.of(diretorioUploads).resolve(nome));
-        if (recurso == null || !recurso.exists()) {
+        List<byte[]> encontrados = nome == null
+                ? List.of()
+                : jdbc.query("SELECT conteudo FROM arquivos WHERE nome = ?", (linha, i) -> linha.getBytes(1), nome);
+        if (encontrados.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, mensagemAusente);
         }
-        return recurso;
+        return new ByteArrayResource(encontrados.get(0)) {
+            @Override
+            public String getFilename() {
+                return nome;
+            }
+        };
     }
 
-    public void apagar(String nome) throws IOException {
+    public void apagar(String nome) {
         if (nome != null) {
-            Files.deleteIfExists(Path.of(diretorioUploads).resolve(nome));
+            jdbc.update("DELETE FROM arquivos WHERE nome = ?", nome);
         }
     }
 }

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { loginPadrao, mockarApi, tokenDe, USUARIO } from "./api";
+import { entrarLogado, mockarApi, USUARIO } from "./api";
 
 const PAGINAS = [
   { rota: "/dashboard", titulo: "Olá, Ryan", menu: "Dashboard" },
@@ -9,8 +9,8 @@ const PAGINAS = [
 ];
 
 test.beforeEach(async ({ page }) => {
-  await mockarApi(page, loginPadrao);
-  await page.addInitScript((token) => localStorage.setItem("billwatch_token", token), tokenDe(USUARIO.email, USUARIO.nome));
+  await mockarApi(page);
+  await entrarLogado(page);
 });
 
 for (const { rota, titulo } of PAGINAS) {

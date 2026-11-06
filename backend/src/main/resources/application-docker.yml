@@ -7,5 +7,3 @@ spring:
     host: ${MAIL_HOST:mailpit}
     port: ${MAIL_PORT:1025}
 
-uploads:
-  diretorio: ${UPLOADS_DIR:/app/uploads}

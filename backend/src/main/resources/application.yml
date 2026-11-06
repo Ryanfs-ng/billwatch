@@ -41,9 +41,6 @@ jwt:
   secret: ${JWT_SECRET}
   expiracao-minutos: 1440
 
-uploads:
-  diretorio: ${UPLOADS_DIR:./uploads}
-
 app:
   url-frontend: ${APP_URL_FRONTEND:http://localhost:5173}
   origens-permitidas: ${CORS_ORIGINS:http://localhost:5173,http://localhost:3000}

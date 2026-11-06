@@ -37,8 +37,6 @@ services:
       MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-false}
       MAIL_STARTTLS: ${MAIL_STARTTLS:-false}
       MAIL_FROM: ${MAIL_FROM:-BillWatch <nao-responda@billwatch.local>}
-    volumes:
-      - ./uploads:/app/uploads
     ports:
       - "8080:8080"
 

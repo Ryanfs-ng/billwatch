@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { loginPadrao, mockarApi, USUARIO } from "./api";
+import { mockarApi, USUARIO } from "./api";
 
 async function entrar(page: Page, email: string, senha: string) {
   await page.getByLabel("E-mail").fill(email);
@@ -11,7 +11,7 @@ const token = (page: Page) => page.evaluate(() => localStorage.getItem("billwatc
 
 test.describe("login", () => {
   test.beforeEach(async ({ page }) => {
-    await mockarApi(page, loginPadrao);
+    await mockarApi(page);
     await page.goto("/login");
   });
 
@@ -67,7 +67,7 @@ test.describe("login", () => {
 
 test.describe("login com respostas especiais da API", () => {
   test("conta que ainda não confirmou o e-mail", async ({ page }) => {
-    await mockarApi(page, () => ({ status: 403, corpo: { message: "Confirme seu e-mail" } }));
+    await mockarApi(page, { login: () => ({ status: 403, corpo: { message: "Confirme seu e-mail" } }) });
     await page.goto("/login");
 
     await entrar(page, USUARIO.email, USUARIO.senha);
@@ -77,7 +77,7 @@ test.describe("login com respostas especiais da API", () => {
   });
 
   test("muitas tentativas informa quanto tempo esperar", async ({ page }) => {
-    await mockarApi(page, () => ({ status: 429, headers: { "Retry-After": "120" } }));
+    await mockarApi(page, { login: () => ({ status: 429, headers: { "Retry-After": "120" } }) });
     await page.goto("/login");
 
     await entrar(page, USUARIO.email, "senha-errada");
@@ -88,7 +88,7 @@ test.describe("login com respostas especiais da API", () => {
 
 test.describe("rotas protegidas", () => {
   test("sem login, páginas internas redirecionam para o login", async ({ page }) => {
-    await mockarApi(page, loginPadrao);
+    await mockarApi(page);
 
     for (const rota of ["/dashboard", "/boletos", "/configuracoes"]) {
       await page.goto(rota);
@@ -97,7 +97,7 @@ test.describe("rotas protegidas", () => {
   });
 
   test("rota inexistente vai para o login", async ({ page }) => {
-    await mockarApi(page, loginPadrao);
+    await mockarApi(page);
     await page.goto("/pagina-que-nao-existe");
     await expect(page).toHaveURL("/login");
   });

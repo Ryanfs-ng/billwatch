@@ -71,7 +71,7 @@ cd backend && mvn test
 
 `BillwatchApplicationTests` sobe o contexto completo e precisa de um PostgreSQL acessível.
 
-Testes end-to-end (Playwright, usando o Chrome instalado). Eles sobem o frontend sozinhos na porta 5180 e simulam a API, então não precisam do backend:
+Testes end-to-end (Playwright, usando o Chrome instalado). Eles geram um build de produção do frontend, servem na porta 5180 e simulam a API, então não precisam do backend. Cobrem login, cadastro e confirmação de e-mail, o ciclo de um boleto (criar, editar, pagar, excluir), filtros e navegação:
 
 ```bash
 cd frontend && npm run test:e2e
@@ -100,7 +100,6 @@ O CI (`.github/workflows/ci.yml`) roda tudo isso a cada push na `main` e em pull
 | `MAIL_USERNAME` / `MAIL_PASSWORD` | em produção | vazio | Login do SMTP |
 | `MAIL_SMTP_AUTH` / `MAIL_STARTTLS` | em produção | `false` / `false` | Autenticação e TLS do SMTP |
 | `MAIL_FROM` | em produção | `BillWatch <nao-responda@billwatch.local>` | Remetente dos e-mails |
-| `UPLOADS_DIR` | não | `./uploads` | Pasta dos anexos e fotos de perfil |
 | `GOOGLE_CLIENT_ID` | não | vazio | Client ID do login com Google; vazio desliga |
 | `FORWARD_HEADERS_STRATEGY` | não | `none` | Use `native` atrás de proxy (veja abaixo) |
 | `BOLETOS_AVISO_CRON` / `BOLETOS_RESUMO_CRON` / `BOLETOS_RECORRENCIA_CRON` | não | 8h diário / 8h segunda / 6h diário | Horários dos jobs (fuso de São Paulo) |
@@ -128,80 +127,104 @@ O backend valida o ID token do Google (assinatura, emissor, `aud` e expiração)
 
 ## Deploy
 
-Arquitetura sugerida:
+Arquitetura gratuita:
 
-| Parte | Onde | Por quê |
+| Parte | Onde | Observação |
 |---|---|---|
 | Frontend | **Vercel** | Site estático do Vite; `frontend/vercel.json` redireciona as rotas para o `index.html` |
-| Backend + PostgreSQL | **Railway** (ou Render) | Processo Java sempre ligado (jobs agendados), Postgres gerenciado e volume persistente para os anexos |
-| E-mail | **Brevo** (SMTP) | Envio transacional com domínio verificado |
+| Backend | **Render** (free web service, Docker) | Dorme após 15 min sem tráfego; um ping externo o mantém acordado |
+| PostgreSQL | **Neon** (plano Free) | 1 GB por projeto; os anexos e fotos de perfil também ficam no banco (tabela `arquivos`) |
+| E-mail | **Brevo** (SMTP na porta **2525**) | O Render grátis bloqueia as portas SMTP 25, 465 e 587 |
+| Ping | **cron-job.org** (grátis) | Chama `/saude` a cada 10 min para o backend não dormir e os jobs agendados rodarem |
 
-O Vercel não serve para o backend: ele roda funções serverless de curta duração, sem processo contínuo para os jobs agendados nem disco persistente para os anexos.
+Por que não o Vercel para o backend: ele roda funções serverless de curta duração, sem processo contínuo para os jobs agendados.
 
-### 1. Backend e banco (Railway)
+### 1. Banco (Neon)
 
-1. Crie um projeto, adicione um **PostgreSQL** e um serviço apontando para este repositório com **Root Directory** `backend` (o `Dockerfile` é detectado).
-2. Adicione um **volume** ao serviço do backend (ex.: montado em `/data/uploads`) e defina `UPLOADS_DIR=/data/uploads`. Sem volume, os anexos somem a cada deploy.
-3. Variáveis do serviço:
+1. Crie um projeto em https://neon.tech (região mais próxima, ex.: São Paulo se disponível).
+2. Em **Connect**, copie a connection string **direta** (sem `-pooler` no host), no formato `postgresql://usuario:senha@host/banco?sslmode=require`.
+3. Converta para as variáveis do backend:
 
    ```
-   DB_URL=jdbc:postgresql://<host>:<porta>/<banco>?currentSchema=billwatch
-   DB_USER=<usuário do Postgres>
-   DB_PASSWORD=<senha do Postgres>
+   DB_URL=jdbc:postgresql://<host>/<banco>?sslmode=require&currentSchema=billwatch
+   DB_USER=<usuario>
+   DB_PASSWORD=<senha>
+   ```
+
+   O Flyway cria o schema `billwatch` e as tabelas no primeiro deploy.
+
+O plano Free do Neon tem 100 horas de computação por mês e suspende o banco quando ninguém o usa. Por isso o ping do item 4 chama `/saude`, que **não consulta o banco**: o backend fica acordado sem gastar a cota do Neon.
+
+### 2. Backend (Render)
+
+1. Em https://render.com, **New → Web Service**, conecte o repositório e escolha:
+   - **Root Directory**: `backend`
+   - **Language/Runtime**: Docker (o `Dockerfile` é detectado)
+   - **Instance Type**: Free
+   - **Health Check Path**: `/saude`
+2. Variáveis de ambiente (além das do Neon):
+
+   ```
    JWT_SECRET=<openssl rand -base64 48>
    APP_URL_FRONTEND=https://<seu-app>.vercel.app
    CORS_ORIGINS=https://<seu-app>.vercel.app
-   UPLOADS_DIR=/data/uploads
    GOOGLE_CLIENT_ID=<client id>
    FORWARD_HEADERS_STRATEGY=native
    ```
 
-   No Railway, os dados do banco podem ser referenciados pelas variáveis do serviço Postgres (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`).
+   O Render injeta `PORT`, que o backend já usa. O `Dockerfile` limita a memória da JVM (`JAVA_TOOL_OPTIONS`) para caber nos 512 MB do plano grátis.
+3. O endereço do serviço (`https://<nome>.onrender.com`) será o `VITE_API_URL` do frontend.
 
-4. Gere um domínio público para o backend; ele será o `VITE_API_URL` do frontend.
+### 3. E-mail (Brevo)
 
-### 2. E-mail (Brevo)
-
-1. Crie a conta e, em **Senders, Domains & Dedicated IPs**, verifique o domínio do remetente (registros DKIM e SPF no DNS). Sem domínio próprio, verifique ao menos o endereço remetente; com domínio verificado os e-mails têm muito menos chance de cair no spam.
+1. Crie a conta e, em **Senders, Domains & Dedicated IPs**, verifique o remetente. Com um domínio próprio, verifique o domínio (registros DKIM e SPF no DNS): os e-mails têm muito menos chance de cair no spam.
 2. Em **SMTP & API → SMTP**, gere uma **SMTP key**.
 3. Variáveis do backend:
 
    ```
    MAIL_HOST=smtp-relay.brevo.com
-   MAIL_PORT=587
+   MAIL_PORT=2525
    MAIL_USERNAME=<login SMTP exibido no Brevo>
    MAIL_PASSWORD=<SMTP key>
    MAIL_SMTP_AUTH=true
    MAIL_STARTTLS=true
-   MAIL_FROM=BillWatch <nao-responda@seudominio.com>
+   MAIL_FROM=BillWatch <remetente-verificado@seudominio.com>
    ```
 
-   O endereço de `MAIL_FROM` precisa ser um remetente ou domínio verificado no Brevo.
+   Use a porta **2525**: o Render grátis bloqueia 25, 465 e 587. O endereço de `MAIL_FROM` precisa ser um remetente ou domínio verificado no Brevo.
 
-### 3. Frontend (Vercel)
+### 4. Ping (cron-job.org)
+
+1. Crie uma conta em https://cron-job.org.
+2. Novo cron job: URL `https://<nome>.onrender.com/saude`, a cada **10 minutos**.
+
+As 750 horas grátis por mês do Render cobrem um serviço ligado o mês inteiro. Sem o ping, o backend dorme e os e-mails de aviso (8h) e a geração de recorrentes (6h) só acontecem quando alguém abre o app.
+
+### 5. Frontend (Vercel)
 
 1. Importe o repositório com **Root Directory** `frontend` (o Vercel detecta o Vite: build `npm run build`, saída `dist`).
 2. Variáveis de ambiente:
 
    ```
-   VITE_API_URL=https://<backend>.up.railway.app
+   VITE_API_URL=https://<nome>.onrender.com
    VITE_GOOGLE_CLIENT_ID=<client id>
    ```
 
-3. Depois do primeiro deploy, confira se `APP_URL_FRONTEND` e `CORS_ORIGINS` no backend batem com o domínio final do Vercel. Os deploys de *preview* do Vercel usam outros domínios e ficam bloqueados pelo CORS, a menos que sejam incluídos em `CORS_ORIGINS`.
+3. Depois do primeiro deploy, confira se `APP_URL_FRONTEND` e `CORS_ORIGINS` no Render batem com o domínio final do Vercel. Os deploys de *preview* do Vercel usam outros domínios e ficam bloqueados pelo CORS, a menos que sejam incluídos em `CORS_ORIGINS`.
 4. Adicione o domínio do Vercel nas **Origens JavaScript autorizadas** do Google.
 
 ### Checklist pós-deploy
 
-- [ ] Backend sobe e o Flyway aplica todas as migrations.
+- [ ] `https://<nome>.onrender.com/saude` responde `ok`.
+- [ ] Logs do Render mostram o Flyway aplicando as migrations no Neon.
 - [ ] Cadastro envia o e-mail de confirmação pelo Brevo e o link abre o frontend.
 - [ ] Login com senha e com Google.
-- [ ] Upload de anexo continua disponível depois de um novo deploy do backend (volume).
+- [ ] Anexo enviado continua abrindo depois de um novo deploy do backend.
 - [ ] Links diretos (ex.: `/boletos`) abrem sem 404 no Vercel.
 
 ### Produção atrás de proxy
 
-O rate limit separa as tentativas por IP. Atrás de um proxy reverso ou balanceador (caso do Railway e do Render), o backend enxerga o IP do proxy para todo mundo, e o limite vira global: poucas tentativas de qualquer pessoa bloqueiam o login de todos.
+O rate limit separa as tentativas por IP. Atrás de um proxy reverso ou balanceador (caso do Render), o backend enxerga o IP do proxy para todo mundo, e o limite vira global: poucas tentativas de qualquer pessoa bloqueiam o login de todos.
 
 Para corrigir, defina `FORWARD_HEADERS_STRATEGY=native`. O Tomcat passa a usar o IP do cabeçalho `X-Forwarded-For`, mas só quando a requisição chega de um proxy da rede privada (10.x, 172.16–31.x, 192.168.x, 127.x); de qualquer outro endereço o cabeçalho é ignorado.
 

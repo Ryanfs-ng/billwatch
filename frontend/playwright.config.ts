@@ -2,12 +2,14 @@ import { defineConfig } from "@playwright/test";
 import { API } from "./e2e/api";
 
 const PORTA = 5180;
+const SAIDA = "dist-e2e";
 
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  workers: process.env.CI ? undefined : 2,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
     baseURL: `http://localhost:${PORTA}`,
@@ -17,9 +19,10 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: `npx vite --port ${PORTA} --strictPort`,
+    command: `npx vite build --outDir ${SAIDA} --emptyOutDir && npx vite preview --outDir ${SAIDA} --port ${PORTA} --strictPort`,
     url: `http://localhost:${PORTA}`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
+    timeout: 180_000,
     env: { VITE_API_URL: API, VITE_GOOGLE_CLIENT_ID: "" },
   },
 });
