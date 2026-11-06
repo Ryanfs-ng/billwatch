@@ -7,8 +7,10 @@ import com.billwatch.dto.RegistrarRequest;
 import com.billwatch.repository.CadastroPendenteRepository;
 import com.billwatch.repository.UsuarioRepository;
 import com.billwatch.security.JwtService;
+import com.billwatch.security.LimitePorConta;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -33,7 +35,7 @@ class UsuarioServiceTest {
     private final CadastroPendenteRepository pendentes = mock(CadastroPendenteRepository.class);
     private final JwtService jwt = mock(JwtService.class);
     private final EmailService email = mock(EmailService.class);
-    private final UsuarioService service = new UsuarioService(usuarios, pendentes, NoOpPasswordEncoder.getInstance(), jwt, email, mock(ArquivoService.class));
+    private final UsuarioService service = new UsuarioService(usuarios, pendentes, NoOpPasswordEncoder.getInstance(), jwt, email, mock(ArquivoService.class), new LimitePorConta());
 
     UsuarioServiceTest() {
         ReflectionTestUtils.setField(service, "linkConfirmarEmail", "http://app/confirmar-email");
@@ -138,5 +140,39 @@ class UsuarioServiceTest {
                 .isInstanceOfSatisfying(ResponseStatusException.class, e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
         assertThat(ryan.getEmailPendente()).isNull();
         verify(email, never()).enviar(anyString(), anyString(), anyString());
+    }
+
+    @Test
+    void bloqueiaLoginDaContaDepoisDeCincoSenhasErradas() {
+        ryanComSenha();
+        for (int i = 0; i < 5; i++) {
+            assertThatThrownBy(() -> service.login(new LoginRequest("ryan@email.com", "errada")))
+                    .isInstanceOfSatisfying(ResponseStatusException.class, e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED));
+        }
+
+        assertThatThrownBy(() -> service.login(new LoginRequest("RYAN@email.com", "senha1234")))
+                .isInstanceOfSatisfying(ResponseStatusException.class, e -> {
+                    assertThat(e.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+                    assertThat(Long.parseLong(e.getHeaders().getFirst(HttpHeaders.RETRY_AFTER))).isPositive();
+                });
+    }
+
+    @Test
+    void loginCertoNaoGastaTentativas() {
+        ryanComSenha();
+        for (int i = 0; i < 10; i++) {
+            assertThat(service.login(new LoginRequest("ryan@email.com", "senha1234")).token()).isEqualTo("jwt");
+        }
+    }
+
+    @Test
+    void limitaEmailsParaOMesmoEnderecoNoEsqueciSenha() {
+        for (int i = 0; i < 5; i++) {
+            service.esqueciSenha("alvo@email.com");
+        }
+
+        assertThatThrownBy(() -> service.esqueciSenha("alvo@email.com"))
+                .isInstanceOfSatisfying(ResponseStatusException.class, e -> assertThat(e.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS));
+        service.esqueciSenha("outro@email.com");
     }
 }

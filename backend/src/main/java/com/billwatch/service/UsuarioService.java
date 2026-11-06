@@ -11,6 +11,8 @@ import com.billwatch.dto.UsuarioResponse;
 import com.billwatch.repository.CadastroPendenteRepository;
 import com.billwatch.repository.UsuarioRepository;
 import com.billwatch.security.JwtService;
+import com.billwatch.security.LimitePorConta;
+import com.billwatch.security.LimitePorConta.Regra;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -25,6 +27,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
@@ -42,6 +45,10 @@ public class UsuarioService {
     private final JwtService jwtService;
     private final EmailService emailService;
     private final ArquivoService arquivoService;
+    private final LimitePorConta limitePorConta;
+
+    private static final Regra SENHA_ERRADA = new Regra("senha-errada", 5, Duration.ofMinutes(15));
+    private static final Regra EMAIL_ENVIADO = new Regra("email-enviado", 5, Duration.ofHours(1));
 
     private static final Map<String, String> TIPOS_FOTO = Map.of(
             "image/jpeg", ".jpg",
@@ -63,6 +70,7 @@ public class UsuarioService {
         if (usuarioRepository.existsByEmail(dados.email())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email já cadastrado");
         }
+        limitePorConta.consumir(EMAIL_ENVIADO, dados.email());
         cadastroPendenteRepository.deleteByExpiraEmBefore(Instant.now());
 
         String token = novoToken();
@@ -98,6 +106,7 @@ public class UsuarioService {
     }
 
     public AuthResponse login (LoginRequest dados) {
+        limitePorConta.exigirDisponivel(SENHA_ERRADA, dados.email());
         Usuario usuario = usuarioRepository.findByEmail(dados.email())
                 .filter(u -> passwordEncoder.matches(dados.senha(),
                         u.getSenha()))
@@ -109,9 +118,11 @@ public class UsuarioService {
         boolean aguardandoConfirmacao = cadastroPendenteRepository.findByEmail(dados.email())
                 .filter(p -> passwordEncoder.matches(dados.senha(), p.getSenha()))
                 .isPresent();
-        return aguardandoConfirmacao
-                ? new ResponseStatusException(HttpStatus.FORBIDDEN, "Confirme seu e-mail pelo link que enviamos para ativar a conta")
-                : new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas");
+        if (aguardandoConfirmacao) {
+            return new ResponseStatusException(HttpStatus.FORBIDDEN, "Confirme seu e-mail pelo link que enviamos para ativar a conta");
+        }
+        limitePorConta.registrar(SENHA_ERRADA, dados.email());
+        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas");
     }
 
     public List<UsuarioResponse> listarUsuarios(String email) {
@@ -123,6 +134,7 @@ public class UsuarioService {
     }
 
     public void esqueciSenha(String email) {
+        limitePorConta.consumir(EMAIL_ENVIADO, email);
         usuarioRepository.findByEmail(email).ifPresent(usuario -> {
             String token = novoToken();
             usuario.setResetTokenHash(sha256(token));
@@ -151,6 +163,7 @@ public class UsuarioService {
         if (novoEmail.equalsIgnoreCase(email) || usuarioRepository.existsByEmail(novoEmail)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email já cadastrado");
         }
+        limitePorConta.consumir(EMAIL_ENVIADO, novoEmail);
         String token = novoToken();
         usuario.setEmailPendente(novoEmail);
         usuario.setEmailTokenHash(sha256(token));
