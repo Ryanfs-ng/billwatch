@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { PortalDoModal } from "@/lib/portal-modal";
+import { cn } from "@/lib/utils";
 
 interface ModalProps {
   aberto: boolean;
   onFechar: () => void;
   titulo: string;
   descricao?: string;
+  largo?: boolean;
   children: ReactNode;
 }
 
@@ -16,7 +18,7 @@ function moverToasts(destino: HTMLElement | null | undefined) {
   if (toaster && destino && toaster.parentElement !== destino) destino.append(toaster);
 }
 
-export function Modal({ aberto, onFechar, titulo, descricao, children }: ModalProps) {
+export function Modal({ aberto, onFechar, titulo, descricao, largo = false, children }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const timerSaida = useRef<number>(undefined);
   const pressionouFora = useRef(false);
@@ -59,7 +61,7 @@ export function Modal({ aberto, onFechar, titulo, descricao, children }: ModalPr
       className="modal"
     >
       {mostrarConteudo && (
-        <div className="modal-painel w-[min(100%,30rem)] rounded-lg border bg-card p-6 text-foreground shadow-md">
+        <div className={cn("modal-painel rounded-lg border bg-card p-6 text-foreground shadow-md", largo ? "w-[min(100%,48rem)]" : "w-[min(100%,30rem)]")}>
           <h2 id="modal-titulo" className="font-display text-2xl font-extrabold tracking-tight">
             {conteudo.titulo}
           </h2>

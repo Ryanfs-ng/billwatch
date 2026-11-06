@@ -2,9 +2,10 @@ import { useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Check, CircleCheck, FileText, Paperclip, Pencil, Plus, Repeat, Search, Trash2, Users } from "lucide-react";
-import { anexarArquivo, baixarAnexo, excluirBoleto, marcarComoPago } from "@/api/boletos";
+import { Check, CircleCheck, Eye, FileText, Paperclip, Pencil, Plus, Repeat, Search, Trash2, Users } from "lucide-react";
+import { anexarArquivo, excluirBoleto, marcarComoPago } from "@/api/boletos";
 import { AbasResponsavel, consultaDaAba, useAba } from "@/components/AbasResponsavel";
+import { BoletoAnexo } from "@/components/BoletoAnexo";
 import { BoletoForm } from "@/components/BoletoForm";
 import { IconButton } from "@/components/IconButton";
 import { Modal } from "@/components/Modal";
@@ -83,6 +84,7 @@ export function Boletos() {
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Boleto | null>(null);
   const [excluindo, setExcluindo] = useState<Boleto | null>(null);
+  const [vendoAnexo, setVendoAnexo] = useState<Boleto | null>(null);
   const [animandoPagamento, setAnimandoPagamento] = useState<string | null>(null);
   const inputAnexo = useRef<HTMLInputElement>(null);
   const anexandoId = useRef<string | null>(null);
@@ -117,7 +119,7 @@ export function Boletos() {
 
   function abrirAnexo(boleto: Boleto) {
     if (boleto.anexo) {
-      baixarAnexo(boleto).catch((e) => toast.error(mensagemErro(e)));
+      setVendoAnexo(boleto);
       return;
     }
     anexandoId.current = boleto.id;
@@ -142,11 +144,11 @@ export function Boletos() {
   const acoes = (boleto: Boleto, className?: string) => (
     <div className="flex items-center gap-1">
       <IconButton
-        label={boleto.anexo ? "Baixar anexo" : "Anexar arquivo"}
+        label={boleto.anexo ? "Ver anexo" : "Anexar arquivo"}
         onClick={() => abrirAnexo(boleto)}
         className={cn(className, boleto.anexo && "text-brand-500")}
       >
-        <Paperclip />
+        {boleto.anexo ? <Eye /> : <Paperclip />}
       </IconButton>
       <IconButton label="Editar" onClick={() => abrirForm(boleto)} className={className}>
         <Pencil />
@@ -356,6 +358,8 @@ export function Boletos() {
         tabIndex={-1}
         aria-hidden
       />
+
+      <BoletoAnexo boleto={vendoAnexo} onFechar={() => setVendoAnexo(null)} />
 
       <BoletoForm
         aberto={formAberto}

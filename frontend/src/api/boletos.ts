@@ -42,12 +42,16 @@ export async function anexarArquivo(id: string, arquivo: File): Promise<Boleto> 
   return data;
 }
 
-export async function baixarAnexo(boleto: Boleto): Promise<void> {
-  const { data } = await http.get<Blob>(`/boletos/${boleto.id}/anexo`, { responseType: "blob" });
-  const url = URL.createObjectURL(data);
+export async function buscarAnexo(id: string): Promise<Blob> {
+  const { data } = await http.get<Blob>(`/boletos/${id}/anexo`, { responseType: "blob" });
+  return data;
+}
+
+export function salvarArquivo(arquivo: Blob, nome: string): void {
+  const url = URL.createObjectURL(arquivo);
   const link = document.createElement("a");
   link.href = url;
-  link.download = boleto.anexo ?? `boleto-${boleto.id}`;
+  link.download = nome;
   link.click();
   URL.revokeObjectURL(url);
 }
