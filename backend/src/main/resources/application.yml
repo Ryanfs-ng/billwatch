@@ -5,6 +5,8 @@ spring:
     url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/billwatch?currentSchema=billwatch}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD}
+    hikari:
+      schema: billwatch
   flyway:
     schemas: billwatch
   jpa:
