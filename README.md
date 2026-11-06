@@ -79,6 +79,8 @@ cd frontend && npm run test:e2e
 
 O relatório HTML fica em `frontend/playwright-report/` (`npx playwright show-report`).
 
+O CI (`.github/workflows/ci.yml`) roda tudo isso a cada push na `main` e em pull requests: testes do backend com um PostgreSQL de serviço, e lint, build, Vitest e Playwright no frontend.
+
 ---
 
 ## Variáveis de ambiente
